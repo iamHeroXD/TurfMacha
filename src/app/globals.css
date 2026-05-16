@@ -1,0 +1,252 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 165 100% 42%;
+    --primary-foreground: 222 47% 6%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 32% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 165 100% 42%;
+    --radius: 0.75rem;
+    --chart-1: 165 100% 42%;
+    --chart-2: 262 83% 58%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 355 78% 56%;
+    --chart-5: 197 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  }
+
+  .glass-strong {
+    @apply bg-white/10 backdrop-blur-xl border border-white/20;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent;
+  }
+
+  .gradient-text-purple {
+    @apply bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-semibold
+           px-6 py-3 rounded-xl transition-all duration-300
+           hover:from-emerald-400 hover:to-cyan-400 hover:shadow-lg hover:shadow-emerald-500/25
+           active:scale-95;
+  }
+
+  .btn-glass {
+    @apply glass text-white font-medium px-6 py-3 rounded-xl
+           transition-all duration-300 hover:bg-white/10 active:scale-95;
+  }
+
+  .input-glass {
+    @apply glass text-white placeholder-white/30 rounded-xl px-4 py-3
+           focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50
+           transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/50;
+  }
+
+  .skeleton {
+    @apply bg-white/5 animate-pulse rounded-xl;
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  .sport-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium
+           bg-white/10 border border-white/20 text-white/80;
+  }
+
+  .status-confirmed {
+    @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
+  }
+
+  .status-pending {
+    @apply bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
+  }
+
+  .status-cancelled {
+    @apply bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+
+  .nav-link {
+    @apply text-white/60 hover:text-white transition-colors duration-200 text-sm font-medium;
+  }
+
+  .nav-link-active {
+    @apply text-emerald-400 font-semibold;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold text-white tracking-tight;
+  }
+
+  .section-subtitle {
+    @apply text-white/50 text-sm mt-1;
+  }
+}
+
+/* Leaflet map dark theme overrides */
+.leaflet-container {
+  background: #1a1a2e !important;
+  border-radius: 1rem;
+}
+
+.leaflet-tile {
+  filter: brightness(0.7) saturate(0.8) hue-rotate(190deg);
+}
+
+.leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.5) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Custom marker */
+.custom-marker {
+  background: linear-gradient(135deg, #00d4aa, #00b894);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 4px 15px rgba(0, 212, 170, 0.4);
+}
+
+/* Mobile bottom navigation safe area */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Hide scrollbar on mobile nav */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Rating stars */
+.star-filled {
+  color: #f6d365;
+  fill: #f6d365;
+}
+
+.star-empty {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Toast custom styling */
+.toast-success {
+  @apply bg-emerald-500/20 border border-emerald-500/30 text-emerald-300;
+}
+
+.toast-error {
+  @apply bg-red-500/20 border border-red-500/30 text-red-300;
+}
+
+/* Price tag */
+.price-tag {
+  @apply font-bold text-emerald-400;
+}
+
+/* Map popup */
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 15, 35, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  color: white !important;
+  backdrop-filter: blur(12px);
+}
+
+.leaflet-popup-tip {
+  background: rgba(15, 15, 35, 0.95) !important;
+}
