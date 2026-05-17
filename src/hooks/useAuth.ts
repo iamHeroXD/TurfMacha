@@ -12,6 +12,15 @@ export function useAuth() {
   useEffect(() => {
     const supabase = createClient();
 
+    const fetchProfile = async (userId: string): Promise<User | null> => {
+      const { data } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      return (data as User) ?? null;
+    };
+
     const initAuth = async () => {
       try {
         const {
@@ -19,13 +28,8 @@ export function useAuth() {
         } = await supabase.auth.getSession();
 
         if (session?.user) {
-          const { data: profile } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-
-          setUser(profile as User);
+          const profile = await fetchProfile(session.user.id);
+          setUser(profile);
         } else {
           setUser(null);
         }
@@ -41,19 +45,19 @@ export function useAuth() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-
-        setUser(profile as User);
-      } else {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      try {
+        if (session?.user) {
+          const profile = await fetchProfile(session.user.id);
+          setUser(profile);
+        } else {
+          setUser(null);
+        }
+      } catch {
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

@@ -54,6 +54,12 @@
   }
 
   /* Refined scrollbar */
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.07) transparent;
+  }
+
   ::-webkit-scrollbar { width: 3px; height: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
@@ -210,9 +216,9 @@
   .glass-strong { @apply bg-[#161616] border border-white/[0.1]; }
   .gradient-text{ @apply text-emerald-400; }
 
-  /* Input */
+  /* Input (44px touch target) */
   .input {
-    @apply h-10 w-full rounded-lg border border-white/[0.09] bg-white/[0.04] px-4 text-sm text-white
+    @apply h-11 w-full rounded-lg border border-white/[0.09] bg-white/[0.04] px-4 text-sm text-white
            placeholder:text-white/30
            focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/40;
     transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;

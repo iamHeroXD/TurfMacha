@@ -12,6 +12,23 @@ interface TurfMapProps {
   selectedTurf?: Turf | null;
 }
 
+// Inline SVG data URIs — no CDN dependency
+const USER_ICON_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <circle cx="10" cy="10" r="8" fill="#10b981" stroke="white" stroke-width="2.5"/>
+  <circle cx="10" cy="10" r="3.5" fill="white"/>
+</svg>`;
+
+const TURF_ICON_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
+  <path d="M16 0 C7.16 0 0 7.16 0 16 C0 28 16 40 16 40 C16 40 32 28 32 16 C32 7.16 24.84 0 16 0Z" fill="#10b981"/>
+  <circle cx="16" cy="16" r="7" fill="white"/>
+  <path d="M13 16 L15.5 18.5 L20 13" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>`;
+
+const svgToDataUri = (svg: string) =>
+  `data:image/svg+xml;base64,${btoa(svg.trim())}`;
+
 export function TurfMap({
   turfs = [],
   center = [12.9716, 77.5946],
@@ -32,19 +49,15 @@ export function TurfMap({
       L = (await import("leaflet")).default;
       await import("leaflet/dist/leaflet.css");
 
-      // Fix default markers
+      // Disable default icon URL resolution (prevents broken icon paths)
       delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-      });
 
       map = L.map(mapRef.current!, {
         center,
         zoom,
         zoomControl: true,
         attributionControl: true,
+        preferCanvas: true,
       });
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -54,65 +67,54 @@ export function TurfMap({
 
       mapInstanceRef.current = map;
 
-      // User location marker
-      const userIcon = L.divIcon({
-        html: `<div style="
-          width: 16px; height: 16px;
-          background: #00d4aa;
-          border: 3px solid white;
-          border-radius: 50%;
-          box-shadow: 0 0 0 4px rgba(0,212,170,0.3);
-        "></div>`,
-        className: "",
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
+      // User location marker (inline SVG — no CDN)
+      const userIcon = L.icon({
+        iconUrl: svgToDataUri(USER_ICON_SVG),
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -14],
       });
 
       L.marker(center, { icon: userIcon })
         .addTo(map)
-        .bindPopup("<b>Your Location</b>");
+        .bindPopup("<strong style='color:#10b981'>You are here</strong>");
 
       // Turf markers
+      const turfIcon = L.icon({
+        iconUrl: svgToDataUri(TURF_ICON_SVG),
+        iconSize: [32, 40],
+        iconAnchor: [16, 40],
+        popupAnchor: [0, -42],
+      });
+
+      const markers: import("leaflet").Marker[] = [];
+
       turfs.forEach((turf) => {
         if (!turf.latitude || !turf.longitude) return;
 
-        const turfIcon = L.divIcon({
-          html: `<div style="
-            background: linear-gradient(135deg, #00d4aa, #00b894);
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            width: 28px; height: 28px;
-            box-shadow: 0 4px 15px rgba(0,212,170,0.4);
-            display: flex; align-items: center; justify-content: center;
-          "><div style="transform:rotate(45deg); font-size:12px;">📍</div></div>`,
-          className: "",
-          iconSize: [28, 28],
-          iconAnchor: [14, 28],
-          popupAnchor: [0, -30],
-        });
-
-        const popup = L.popup({
-          maxWidth: 220,
-          className: "turf-popup",
-        }).setContent(`
-          <div style="font-family: system-ui; padding: 4px;">
-            <h3 style="font-weight: 700; font-size: 14px; color: white; margin: 0 0 4px 0;">${turf.name}</h3>
-            <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin: 0 0 8px 0;">${turf.address}</p>
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-              <span style="font-size: 12px; color: rgba(255,255,255,0.5);">⭐ ${turf.rating?.toFixed(1) || "New"}</span>
-              <span style="font-size: 13px; font-weight: 700; color: #00d4aa;">${formatPrice(turf.price_per_hour)}/hr</span>
+        const popup = L.popup({ maxWidth: 220 }).setContent(`
+          <div style="font-family:system-ui;padding:4px;min-width:160px">
+            <h3 style="font-weight:700;font-size:13px;color:white;margin:0 0 3px 0;line-height:1.3">${turf.name}</h3>
+            <p style="font-size:11px;color:rgba(255,255,255,0.55);margin:0 0 8px 0;line-height:1.4">${turf.city}</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:11px;color:rgba(255,255,255,0.5)">⭐ ${turf.rating?.toFixed(1) || "New"}</span>
+              <span style="font-size:13px;font-weight:700;color:#10b981">${formatPrice(turf.price_per_hour)}/hr</span>
             </div>
           </div>
         `);
 
-        L.marker([turf.latitude, turf.longitude], { icon: turfIcon })
+        const marker = L.marker([turf.latitude, turf.longitude], { icon: turfIcon })
           .addTo(map)
           .bindPopup(popup);
+
+        markers.push(marker);
       });
 
-      // If single turf, add its marker
-      if (selectedTurf) {
+      // Fit bounds to show all markers when multiple turfs are shown
+      if (markers.length > 1 && !selectedTurf) {
+        const group = L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.15));
+      } else if (selectedTurf?.latitude && selectedTurf?.longitude) {
         map.setView([selectedTurf.latitude, selectedTurf.longitude], 15);
       }
     };
@@ -125,12 +127,13 @@ export function TurfMap({
         mapInstanceRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div
       ref={mapRef}
-      className={`${className} rounded-2xl overflow-hidden`}
+      className={`${className} rounded-xl overflow-hidden`}
       style={{ zIndex: 0 }}
     />
   );

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { Sport, FilterState } from "@/types";
 
 interface FilterStore extends FilterState {
@@ -10,23 +11,32 @@ interface FilterStore extends FilterState {
   resetFilters: () => void;
 }
 
-export const useFilterStore = create<FilterStore>((set) => ({
-  sport: undefined,
-  maxDistance: undefined,
-  maxPrice: undefined,
-  minRating: undefined,
-  searchQuery: undefined,
-  setSport: (sport) => set({ sport }),
-  setMaxDistance: (maxDistance) => set({ maxDistance }),
-  setMaxPrice: (maxPrice) => set({ maxPrice }),
-  setMinRating: (minRating) => set({ minRating }),
-  setSearchQuery: (searchQuery) => set({ searchQuery }),
-  resetFilters: () =>
-    set({
+export const useFilterStore = create<FilterStore>()(
+  persist(
+    (set) => ({
       sport: undefined,
       maxDistance: undefined,
       maxPrice: undefined,
       minRating: undefined,
       searchQuery: undefined,
+      setSport: (sport) => set({ sport }),
+      setMaxDistance: (maxDistance) => set({ maxDistance }),
+      setMaxPrice: (maxPrice) => set({ maxPrice }),
+      setMinRating: (minRating) => set({ minRating }),
+      setSearchQuery: (searchQuery) => set({ searchQuery }),
+      resetFilters: () =>
+        set({
+          sport: undefined,
+          maxDistance: undefined,
+          maxPrice: undefined,
+          minRating: undefined,
+          searchQuery: undefined,
+        }),
     }),
-}));
+    {
+      name: "turfmacha-filters",
+      // Only persist the sport filter — search query resets each session
+      partialize: (state) => ({ sport: state.sport }),
+    }
+  )
+);

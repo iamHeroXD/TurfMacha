@@ -24,7 +24,7 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => set({ user: null }),
     }),
     {
-      name: "turfbook-auth",
+      name: "turfmacha-auth",
       partialize: (state) => ({ user: state.user }),
     }
   )

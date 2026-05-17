@@ -106,7 +106,7 @@ export default function EditTurfPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 px-4">
+      <div className="min-h-screen pt-14 px-4">
         <div className="max-w-2xl mx-auto space-y-4 py-8">
           <Skeleton className="h-10 w-48" />
           {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-40 rounded-2xl" />)}
@@ -116,7 +116,7 @@ export default function EditTurfPage() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-8 px-4">
+    <div className="min-h-screen pt-14 pb-24 md:pb-8 px-4">
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-3 mb-6">

@@ -76,7 +76,7 @@ export function Navbar() {
             >
               <span className="text-black font-bold text-xs leading-none">T</span>
             </motion.div>
-            <span className="font-semibold text-white text-sm tracking-tight">TurfBook</span>
+            <span className="font-semibold text-white text-sm tracking-tight">TurfMacha</span>
           </Link>
 
           {/* Desktop links */}

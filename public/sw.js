@@ -1,4 +1,4 @@
-const CACHE_NAME = "turfbook-v1";
+const CACHE_NAME = "turfmacha-v1";
 const OFFLINE_URL = "/offline";
 
 const STATIC_ASSETS = [
@@ -8,6 +8,7 @@ const STATIC_ASSETS = [
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
 ];
+// Note: Only cache icon sizes that exist in public/icons/
 
 // Install
 self.addEventListener("install", (event) => {
@@ -106,7 +107,7 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener("push", (event) => {
   if (!event.data) return;
   const data = event.data.json();
-  self.registration.showNotification(data.title || "TurfBook", {
+  self.registration.showNotification(data.title || "TurfMacha", {
     body: data.body || "You have a new notification",
     icon: "/icons/icon-192x192.png",
     badge: "/icons/icon-96x96.png",

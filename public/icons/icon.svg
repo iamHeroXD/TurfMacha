@@ -1,12 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="128" fill="#0a0a1a"/>
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#00d4aa"/>
-      <stop offset="100%" style="stop-color:#00b4d8"/>
-    </linearGradient>
-  </defs>
-  <circle cx="256" cy="220" r="90" fill="url(#g)"/>
-  <path d="M256 300 L256 440" stroke="url(#g)" stroke-width="36" stroke-linecap="round"/>
-  <circle cx="256" cy="220" r="45" fill="#0a0a1a"/>
+  <!-- Background — dark rounded square (safe zone padding for maskable) -->
+  <rect width="512" height="512" rx="96" fill="#0a0a0a"/>
+  <!-- Emerald accent square -->
+  <rect x="112" y="112" width="288" height="288" rx="72" fill="#10b981"/>
+  <!-- White "T" lettermark -->
+  <rect x="148" y="175" width="216" height="46" rx="12" fill="#000000"/>
+  <rect x="233" y="175" width="46" height="176" rx="12" fill="#000000"/>
 </svg>

@@ -272,7 +272,7 @@ export default function HomePage() {
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div {...fadeUp()} className="mb-8">
-            <h2 className="text-lg font-semibold text-white">Why TurfBook?</h2>
+            <h2 className="text-lg font-semibold text-white">Why TurfMacha?</h2>
             <p className="text-sm text-white/40 mt-0.5">Built for players, by sports enthusiasts</p>
           </motion.div>
           <motion.div

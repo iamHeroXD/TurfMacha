@@ -40,7 +40,7 @@ export default function BookingsPage() {
   const past = bookings.filter((b) => b.status === "cancelled" || new Date(`${b.slot_date}T${b.start_time}`) < new Date());
 
   return (
-    <div className="min-h-screen pt-20 pb-8 px-4">
+    <div className="min-h-screen pt-14 pb-24 md:pb-8 px-4">
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">

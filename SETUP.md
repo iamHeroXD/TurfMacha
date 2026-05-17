@@ -1,9 +1,10 @@
-# TurfBook — Complete Setup & Deployment Guide
+# TurfMacha — Complete Setup & Deployment Guide
 
 ## Quick Start
 
 ```bash
 npm install
+npm run generate-icons   # Generate PWA icon PNGs
 npm run dev
 ```
 
@@ -16,7 +17,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Create Project
 1. Go to [supabase.com](https://supabase.com) → New Project
 2. Choose a strong database password
-3. Select a region close to your users
+3. Select a region close to your users (e.g. ap-south-1 for India)
 
 ### Get API Keys
 1. Go to **Project Settings → API**
@@ -29,18 +30,22 @@ Open [http://localhost:3000](http://localhost:3000)
 2. Paste the entire contents of `supabase/schema.sql`
 3. Click **Run**
 
-This creates all tables, RLS policies, triggers, and indexes.
+This creates all tables, RLS policies, triggers, and indexes automatically.
+
+> **Note on PostGIS:** The schema has PostGIS commented out. Only enable it if your Supabase plan supports it.
 
 ### Configure Auth
 1. Go to **Authentication → URL Configuration**
 2. Set **Site URL** to your domain (or `http://localhost:3000` for dev)
-3. Add redirect URLs: `http://localhost:3000/**` and `https://yourapp.vercel.app/**`
+3. Add allowed redirect URLs:
+   - `http://localhost:3000/**`
+   - `https://your-app.vercel.app/**`
 
 ---
 
 ## 2. Environment Variables
 
-Create `.env.local` (already created, fill in your values):
+Create `.env.local`:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
@@ -52,49 +57,45 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ## 3. PWA Icons Setup
 
-Generate icons using [pwabuilder.com/imageGenerator](https://www.pwabuilder.com/imageGenerator):
-- Upload your logo/icon
-- Download the generated icon pack
-- Place PNGs in `public/icons/`:
-  - `icon-72x72.png`
-  - `icon-96x96.png`
-  - `icon-128x128.png`
-  - `icon-144x144.png`
-  - `icon-152x152.png`
-  - `icon-192x192.png`
-  - `icon-384x384.png`
-  - `icon-512x512.png`
-  - `apple-touch-icon.png` (180x180)
+Icons are generated automatically during build via `scripts/generate-icons.mjs`.
+
+To generate manually:
+
+```bash
+npm run generate-icons
+```
+
+This reads `public/icons/icon.svg` and outputs:
+- `public/icons/icon-192x192.png`
+- `public/icons/icon-512x512.png`
+
+Requires: `npm install` (includes `sharp` as a dev dependency).
 
 ---
 
 ## 4. Deploy to Vercel
 
-### Via CLI
-```bash
-npm install -g vercel
-vercel login
-vercel
-```
-
-### Via GitHub
+### Via GitHub (Recommended)
 1. Push to GitHub: `git push origin main`
 2. Go to [vercel.com](https://vercel.com) → Import Project
-3. Connect your GitHub repo
+3. Connect your GitHub repo: `iamHeroXD/TurfMacha`
 4. Add Environment Variables (same as `.env.local`)
-5. Deploy
+5. Click Deploy
 
 ### Environment Variables on Vercel
 In Vercel Dashboard → Project → Settings → Environment Variables:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_APP_URL` = `https://your-app.vercel.app`
+
+| Key | Value |
+|-----|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key |
+| `NEXT_PUBLIC_APP_URL` | `https://your-app.vercel.app` |
 
 ---
 
 ## 5. Add Sample Data
 
-After creating an owner account, use this SQL to add sample turfs:
+After creating an owner account, copy the owner's user ID from the Supabase users table and run:
 
 ```sql
 INSERT INTO public.turfs (
@@ -147,115 +148,15 @@ INSERT INTO public.turfs (
 );
 ```
 
-Replace `'YOUR_OWNER_USER_ID'` with actual UUID from the `users` table.
-
 ---
 
-## 6. File Structure
+## 6. Auth Troubleshooting
 
-```
-turf-app/
-├── public/
-│   ├── icons/           # PWA icons
-│   ├── manifest.json    # PWA manifest
-│   └── sw.js           # Service worker
-├── src/
-│   ├── app/
-│   │   ├── (auth)/
-│   │   │   ├── login/
-│   │   │   └── signup/
-│   │   ├── dashboard/
-│   │   │   ├── user/   # Player dashboard
-│   │   │   └── owner/  # Owner dashboard
-│   │   ├── turfs/      # Turf listing + detail
-│   │   ├── offline/    # PWA offline page
-│   │   ├── layout.tsx  # Root layout
-│   │   └── page.tsx    # Home page
-│   ├── components/
-│   │   ├── booking/    # BookingModal, BookingCard
-│   │   ├── layout/     # Navbar, BottomNav, AuthProvider
-│   │   ├── map/        # Leaflet map
-│   │   ├── turf/       # TurfCard, SportFilter, SearchBar
-│   │   └── ui/         # shadcn-style components
-│   ├── hooks/          # useAuth, useLocation, useTurfs, useToast
-│   ├── lib/
-│   │   ├── supabase/   # client.ts, server.ts
-│   │   ├── validations/ # Zod schemas
-│   │   └── utils.ts    # Helpers, formatters
-│   ├── middleware.ts   # Route protection
-│   ├── store/          # Zustand stores
-│   └── types/          # TypeScript interfaces
-├── supabase/
-│   └── schema.sql      # Complete DB schema
-└── .env.local          # Environment variables
-```
+**"new row violates row-level security policy"**  
+→ Re-run `supabase/schema.sql` in the Supabase SQL Editor to ensure the INSERT policy on `public.users` exists.
 
----
+**User profile not found after signup**  
+→ Check that the `on_auth_user_created` trigger is active in Supabase → Database → Triggers.
 
-## 7. Production Checklist
-
-- [ ] Supabase project created and schema run
-- [ ] Environment variables set in Vercel
-- [ ] PWA icons placed in `/public/icons/`
-- [ ] Supabase Auth redirect URLs configured
-- [ ] Test signup flow (user + owner)
-- [ ] Test turf creation (owner dashboard)
-- [ ] Test booking flow (user)
-- [ ] Test mobile PWA install
-- [ ] Check Lighthouse score
-- [ ] Set up Supabase backups
-
----
-
-## 8. Key Features Implemented
-
-| Feature | Status |
-|---------|--------|
-| User Authentication | ✅ |
-| Owner Authentication | ✅ |
-| Role-based Routing | ✅ |
-| Turf Listing | ✅ |
-| Turf Search & Filter | ✅ |
-| Sport Filtering | ✅ |
-| Turf Detail Page | ✅ |
-| Booking System | ✅ |
-| Double-booking Prevention | ✅ |
-| Owner Dashboard | ✅ |
-| User Dashboard | ✅ |
-| Map Integration (Leaflet) | ✅ |
-| Favorites | ✅ |
-| PWA Support | ✅ |
-| Service Worker | ✅ |
-| Offline Fallback | ✅ |
-| PWA Install Prompt | ✅ |
-| Row Level Security | ✅ |
-| Dark Glassmorphism UI | ✅ |
-| Mobile Bottom Nav | ✅ |
-| Skeleton Loaders | ✅ |
-| Framer Motion Animations | ✅ |
-
----
-
-## 9. Tech Stack Summary
-
-- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS
-- **UI**: Custom glassmorphism components, shadcn/ui primitives
-- **Animations**: Framer Motion
-- **Backend**: Supabase (PostgreSQL)
-- **Auth**: Supabase Auth
-- **Maps**: Leaflet.js + OpenStreetMap
-- **State**: Zustand + React Query pattern
-- **Forms**: React Hook Form + Zod
-- **PWA**: Custom service worker, Web App Manifest
-- **Deployment**: Vercel
-
----
-
-## 10. Commands
-
-```bash
-npm run dev      # Start development server
-npm run build    # Build for production
-npm run start    # Start production server
-npm run lint     # Run ESLint
-```
+**Session not persisting**  
+→ Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are correctly set.

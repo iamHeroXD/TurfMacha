@@ -17,27 +17,50 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "TurfBook — Book Sports Turf Near You",
-    template: "%s | TurfBook",
+    default: "TurfMacha — Book Sports Turf Near You",
+    template: "%s | TurfMacha",
   },
   description:
     "Discover and book premium sports turfs near you. Football, cricket, badminton, basketball and more. Instant booking, best prices.",
-  keywords: ["turf booking", "sports turf", "football turf", "cricket turf", "book turf online"],
-  authors: [{ name: "TurfBook" }],
-  creator: "TurfBook",
+  keywords: [
+    "turf booking",
+    "sports turf",
+    "football turf",
+    "cricket turf",
+    "book turf online",
+    "TurfMacha",
+    "turf booking India",
+  ],
+  authors: [{ name: "TurfMacha" }],
+  creator: "TurfMacha",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "TurfBook",
+    title: "TurfMacha",
   },
   formatDetection: { telephone: false },
   openGraph: {
-    title: "TurfBook — Book Sports Turf Near You",
-    description: "Discover and book premium sports turfs near you.",
+    title: "TurfMacha — Book Sports Turf Near You",
+    description:
+      "Discover and book premium sports turfs near you. Instant booking. Best prices.",
     type: "website",
     locale: "en_IN",
-    siteName: "TurfBook",
+    siteName: "TurfMacha",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TurfMacha",
+    description: "Discover and book premium sports turfs near you.",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
   },
 };
 
@@ -49,7 +72,11 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className={`dark ${inter.variable}`} suppressHydrationWarning>
       <head>
@@ -58,7 +85,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className={`${inter.className} antialiased bg-[#0a0a0a] text-white min-h-screen`}>
+      <body
+        className={`${inter.className} antialiased bg-[#0a0a0a] text-white min-h-screen`}
+      >
         <AuthProvider>
           <Navbar />
           <PageTransition>

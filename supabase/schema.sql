@@ -1,11 +1,12 @@
 -- ============================================================
--- TurfBook - Complete Production Database Schema
+-- TurfMacha - Complete Production Database Schema
 -- Run this in Supabase SQL Editor
 -- ============================================================
 
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "postgis";  -- For geospatial queries (optional)
+-- PostGIS is optional (geospatial queries). Remove if not on your Supabase plan.
+-- CREATE EXTENSION IF NOT EXISTS "postgis";
 
 -- ============================================================
 -- USERS TABLE
@@ -77,7 +78,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
     notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    -- Prevent double booking: same turf, same date, overlapping time
+    -- Prevent double booking: same turf, same date, same start slot
     CONSTRAINT no_double_booking UNIQUE (turf_id, slot_date, start_time)
 );
 
@@ -109,26 +110,28 @@ CREATE TABLE IF NOT EXISTS public.favorites (
 -- ============================================================
 -- INDEXES
 -- ============================================================
-CREATE INDEX IF NOT EXISTS idx_turfs_owner ON public.turfs(owner_id);
-CREATE INDEX IF NOT EXISTS idx_turfs_city ON public.turfs(city);
-CREATE INDEX IF NOT EXISTS idx_turfs_sports ON public.turfs USING GIN(sports);
-CREATE INDEX IF NOT EXISTS idx_turfs_active ON public.turfs(is_active);
-CREATE INDEX IF NOT EXISTS idx_turfs_rating ON public.turfs(rating DESC);
+CREATE INDEX IF NOT EXISTS idx_turfs_owner    ON public.turfs(owner_id);
+CREATE INDEX IF NOT EXISTS idx_turfs_city     ON public.turfs(city);
+CREATE INDEX IF NOT EXISTS idx_turfs_sports   ON public.turfs USING GIN(sports);
+CREATE INDEX IF NOT EXISTS idx_turfs_active   ON public.turfs(is_active);
+CREATE INDEX IF NOT EXISTS idx_turfs_rating   ON public.turfs(rating DESC);
 CREATE INDEX IF NOT EXISTS idx_turfs_location ON public.turfs(latitude, longitude);
 
-CREATE INDEX IF NOT EXISTS idx_bookings_user ON public.bookings(user_id);
-CREATE INDEX IF NOT EXISTS idx_bookings_turf ON public.bookings(turf_id);
-CREATE INDEX IF NOT EXISTS idx_bookings_date ON public.bookings(slot_date);
+CREATE INDEX IF NOT EXISTS idx_bookings_user   ON public.bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_turf   ON public.bookings(turf_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_date   ON public.bookings(slot_date);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON public.bookings(status);
+-- Composite index for the double-booking query pattern
+CREATE INDEX IF NOT EXISTS idx_bookings_turf_date ON public.bookings(turf_id, slot_date);
 
-CREATE INDEX IF NOT EXISTS idx_reviews_turf ON public.reviews(turf_id);
-CREATE INDEX IF NOT EXISTS idx_favorites_user ON public.favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_turf    ON public.reviews(turf_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_user  ON public.favorites(user_id);
 
 -- ============================================================
 -- FUNCTIONS & TRIGGERS
 -- ============================================================
 
--- Auto-update updated_at
+-- Auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -146,14 +149,14 @@ CREATE TRIGGER turfs_updated_at BEFORE UPDATE ON public.turfs
 CREATE TRIGGER bookings_updated_at BEFORE UPDATE ON public.bookings
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- Auto-update turf rating when review added/deleted
+-- Auto-update turf rating when review is added/updated/deleted
 CREATE OR REPLACE FUNCTION update_turf_rating()
 RETURNS TRIGGER AS $$
 BEGIN
     UPDATE public.turfs
     SET
         rating = (
-            SELECT COALESCE(AVG(rating), 0)
+            SELECT COALESCE(ROUND(AVG(rating)::NUMERIC, 2), 0)
             FROM public.reviews
             WHERE turf_id = COALESCE(NEW.turf_id, OLD.turf_id)
         ),
@@ -171,18 +174,29 @@ CREATE TRIGGER reviews_update_rating
     AFTER INSERT OR UPDATE OR DELETE ON public.reviews
     FOR EACH ROW EXECUTE FUNCTION update_turf_rating();
 
--- Auto-create user profile on signup
+-- ============================================================
+-- AUTO-CREATE USER PROFILE ON SIGNUP
+-- This trigger fires when a new auth.users row is created.
+-- SECURITY DEFINER bypasses RLS so the insert always succeeds.
+-- The client can also upsert additional fields (phone) after signup.
+-- ============================================================
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO public.users (id, email, full_name, role)
+    INSERT INTO public.users (id, email, full_name, phone, role)
     VALUES (
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+        NEW.raw_user_meta_data->>'phone',
         COALESCE(NEW.raw_user_meta_data->>'role', 'user')
     )
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE
+        SET
+            full_name = EXCLUDED.full_name,
+            phone     = COALESCE(EXCLUDED.phone, public.users.phone),
+            role      = EXCLUDED.role,
+            updated_at = NOW();
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -194,37 +208,42 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 -- ============================================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================================
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.owner_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.turfs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.turfs        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bookings     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.favorites    ENABLE ROW LEVEL SECURITY;
 
--- USERS policies
-CREATE POLICY "Users can view their own profile"
+-- ── USERS policies ──────────────────────────────────────────
+
+-- All authenticated users can read all profiles (needed for owner dashboards)
+CREATE POLICY "Public profiles are viewable"
     ON public.users FOR SELECT
-    USING (auth.uid() = id);
+    USING (TRUE);
 
+-- Users can insert their own profile row (needed for client-side upsert after signup)
+CREATE POLICY "Users can insert their own profile"
+    ON public.users FOR INSERT
+    WITH CHECK (auth.uid() = id);
+
+-- Users can update only their own profile
 CREATE POLICY "Users can update their own profile"
     ON public.users FOR UPDATE
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
 
-CREATE POLICY "Public profiles are viewable"
-    ON public.users FOR SELECT
-    USING (TRUE);
-
--- OWNER_PROFILES policies
+-- ── OWNER_PROFILES policies ─────────────────────────────────
 CREATE POLICY "Owners can manage their profile"
     ON public.owner_profiles FOR ALL
-    USING (auth.uid() = user_id);
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Owner profiles are public"
     ON public.owner_profiles FOR SELECT
     USING (TRUE);
 
--- TURFS policies
+-- ── TURFS policies ───────────────────────────────────────────
 CREATE POLICY "Active turfs are publicly viewable"
     ON public.turfs FOR SELECT
     USING (is_active = TRUE OR auth.uid() = owner_id);
@@ -248,8 +267,9 @@ CREATE POLICY "Owners can delete their turfs"
     ON public.turfs FOR DELETE
     USING (auth.uid() = owner_id);
 
--- BOOKINGS policies
-CREATE POLICY "Users can view their bookings"
+-- ── BOOKINGS policies ────────────────────────────────────────
+-- Players see their own bookings; owners see bookings for their turfs
+CREATE POLICY "Users and owners can view relevant bookings"
     ON public.bookings FOR SELECT
     USING (
         auth.uid() = user_id
@@ -263,12 +283,12 @@ CREATE POLICY "Authenticated users can create bookings"
     ON public.bookings FOR INSERT
     WITH CHECK (auth.uid() = user_id AND auth.uid() IS NOT NULL);
 
-CREATE POLICY "Users can update their own bookings"
+CREATE POLICY "Users can cancel their own bookings"
     ON public.bookings FOR UPDATE
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
--- REVIEWS policies
+-- ── REVIEWS policies ─────────────────────────────────────────
 CREATE POLICY "Reviews are publicly viewable"
     ON public.reviews FOR SELECT
     USING (TRUE);
@@ -285,34 +305,28 @@ CREATE POLICY "Users can delete their own reviews"
     ON public.reviews FOR DELETE
     USING (auth.uid() = user_id);
 
--- FAVORITES policies
+-- ── FAVORITES policies ───────────────────────────────────────
 CREATE POLICY "Users can manage their favorites"
     ON public.favorites FOR ALL
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
 -- ============================================================
--- SEED DATA (Sample turfs for testing)
+-- SEED DATA
+-- Replace 'YOUR_OWNER_USER_ID' with a real owner UUID after signup.
 -- ============================================================
 
--- Note: Replace 'YOUR_OWNER_USER_ID' with an actual owner user ID after creating an account
--- INSERT INTO public.turfs (owner_id, name, description, address, city, state, latitude, longitude, sports, price_per_hour, amenities, images, operating_hours_start, operating_hours_end, is_active, rating, total_reviews)
+-- INSERT INTO public.turfs (owner_id, name, description, address, city, state,
+--   latitude, longitude, sports, price_per_hour, amenities, images,
+--   operating_hours_start, operating_hours_end, is_active, rating, total_reviews)
 -- VALUES (
---     'YOUR_OWNER_USER_ID',
---     'Green Arena Football Ground',
---     'Premium football ground with synthetic turf and floodlights. Perfect for evening matches.',
---     '123 Sports Complex Road, Koramangala',
---     'Bangalore',
---     'Karnataka',
---     12.9279,
---     77.6271,
---     ARRAY['football'],
---     800,
---     ARRAY['Parking', 'Floodlights', 'Changing Rooms', 'Drinking Water'],
---     ARRAY['https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=800'],
---     '06:00',
---     '23:00',
---     TRUE,
---     4.5,
---     12
+--   'YOUR_OWNER_USER_ID',
+--   'Green Arena Football Ground',
+--   'Premium football ground with synthetic turf and floodlights.',
+--   '123 Sports Complex Road, Koramangala', 'Bangalore', 'Karnataka',
+--   12.9279, 77.6271,
+--   ARRAY['football'], 800,
+--   ARRAY['Parking', 'Floodlights', 'Changing Rooms', 'Drinking Water'],
+--   ARRAY['https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=800'],
+--   '06:00', '23:00', TRUE, 4.5, 12
 -- );

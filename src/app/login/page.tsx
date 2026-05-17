@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/useAuthStore";
 import { loginSchema, LoginInput } from "@/lib/validations/auth";
+import { User } from "@/types";
 
 const field = (i: number) => ({
   initial: { opacity: 0, y: 10 },
@@ -21,34 +22,65 @@ const field = (i: number) => ({
 });
 
 function LoginContent() {
-  const router  = useRouter();
-  const params  = useSearchParams();
+  const router = useRouter();
+  const params = useSearchParams();
   const { setUser } = useAuthStore();
   const [show, setShow] = useState(false);
-  const [err,  setErr]  = useState("");
+  const [err, setErr] = useState("");
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginInput>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginInput) => {
     setErr("");
     const sb = createClient();
-    const { data: auth, error } = await sb.auth.signInWithPassword({ email: data.email, password: data.password });
-    if (error) { setErr(error.message); return; }
-    if (auth.user) {
-      const { data: profile } = await sb.from("users").select("*").eq("id", auth.user.id).single();
-      if (profile) {
-        setUser(profile);
-        router.push(params.get("redirect") || (profile.role === "owner" ? "/dashboard/owner" : "/dashboard/user"));
-      }
+
+    const { data: auth, error } = await sb.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (error) {
+      setErr(error.message);
+      return;
     }
+
+    if (!auth.user) {
+      setErr("Login failed. Please try again.");
+      return;
+    }
+
+    // Fetch the public profile
+    const { data: profile, error: profileError } = await sb
+      .from("users")
+      .select("*")
+      .eq("id", auth.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      // Profile not found — sign out and prompt re-signup
+      await sb.auth.signOut();
+      setErr(
+        "Profile not found. Your account may be incomplete. Please sign up again or contact support."
+      );
+      return;
+    }
+
+    setUser(profile as User);
+    const redirect =
+      params.get("redirect") ||
+      (profile.role === "owner" ? "/dashboard/owner" : "/dashboard/user");
+    router.push(redirect);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0a0a0a]">
       <div className="w-full max-w-sm">
-
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -8 }}
@@ -59,7 +91,7 @@ function LoginContent() {
             <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center shadow-[0_0_12px_rgba(16,185,129,0.3)]">
               <span className="text-black font-bold text-xs">T</span>
             </div>
-            <span className="font-semibold text-white text-sm">TurfBook</span>
+            <span className="font-semibold text-white text-sm">TurfMacha</span>
           </Link>
         </motion.div>
 
@@ -79,7 +111,10 @@ function LoginContent() {
           className="text-sm text-white/40 mb-8"
         >
           New here?{" "}
-          <Link href="/signup" className="text-emerald-400 hover:text-emerald-300 transition-colors underline underline-offset-2">
+          <Link
+            href="/signup"
+            className="text-emerald-400 hover:text-emerald-300 transition-colors underline underline-offset-2"
+          >
             Create an account
           </Link>
         </motion.p>
@@ -87,13 +122,23 @@ function LoginContent() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <motion.div {...field(0)} className="space-y-1.5">
             <Label className="text-white/55 text-sm">Email</Label>
-            <Input type="email" placeholder="you@example.com" error={errors.email?.message} {...register("email")} />
+            <Input
+              type="email"
+              placeholder="you@example.com"
+              error={errors.email?.message}
+              {...register("email")}
+            />
           </motion.div>
 
           <motion.div {...field(1)} className="space-y-1.5">
             <Label className="text-white/55 text-sm">Password</Label>
             <div className="relative">
-              <Input type={show ? "text" : "password"} placeholder="••••••••" error={errors.password?.message} {...register("password")} />
+              <Input
+                type={show ? "text" : "password"}
+                placeholder="••••••••"
+                error={errors.password?.message}
+                {...register("password")}
+              />
               <motion.button
                 type="button"
                 whileTap={{ scale: 0.85 }}
@@ -116,7 +161,12 @@ function LoginContent() {
           )}
 
           <motion.div {...field(2)}>
-            <Button type="submit" className="w-full" size="lg" loading={isSubmitting}>
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              loading={isSubmitting}
+            >
               Sign in
             </Button>
           </motion.div>
