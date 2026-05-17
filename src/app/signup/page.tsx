@@ -19,6 +19,7 @@ function SignupContent() {
   const defaultRole = (params.get("role") as "user" | "owner") || "user";
   const [show, setShow] = useState(false);
   const [err, setErr] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
   const [role, setRole] = useState<"user" | "owner">(defaultRole);
 
   const {
@@ -58,6 +59,12 @@ function SignupContent() {
       return;
     }
 
+    // Email confirmation required — Supabase returns a user but no session
+    if (!auth.session) {
+      setEmailSent(true);
+      return;
+    }
+
     // Step 2: The DB trigger handle_new_user() has already created the profile
     // row via SECURITY DEFINER. We upsert here only to patch the phone field
     // if the trigger ran before the metadata was available (edge case), and to
@@ -82,6 +89,26 @@ function SignupContent() {
     // Step 3: Redirect based on role
     router.push(role === "owner" ? "/dashboard/owner" : "/dashboard/user");
   };
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[#0a0a0a]">
+        <div className="w-full max-w-sm text-center">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+            <span className="text-emerald-400 text-xl">✓</span>
+          </div>
+          <h1 className="text-xl font-bold text-white mb-2">Check your email</h1>
+          <p className="text-sm text-white/50 mb-6">
+            We sent a confirmation link to your email address. Click it to activate your account, then{" "}
+            <Link href="/login" className="text-emerald-400 hover:underline">sign in</Link>.
+          </p>
+          <Link href="/login">
+            <Button variant="outline" className="w-full">Back to sign in</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#0a0a0a]">

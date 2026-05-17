@@ -63,11 +63,34 @@ function LoginContent() {
       .single();
 
     if (profileError || !profile) {
-      // Profile not found — sign out and prompt re-signup
-      await sb.auth.signOut();
-      setErr(
-        "Profile not found. Your account may be incomplete. Please sign up again or contact support."
-      );
+      // Profile missing — auto-create from auth metadata (handles trigger race conditions)
+      const meta = auth.user.user_metadata ?? {};
+      const { data: created, error: createError } = await sb
+        .from("users")
+        .upsert(
+          {
+            id: auth.user.id,
+            email: auth.user.email!,
+            full_name: (meta.full_name as string) || auth.user.email!.split("@")[0],
+            phone: (meta.phone as string) || null,
+            role: (meta.role as string) || "user",
+          },
+          { onConflict: "id" }
+        )
+        .select()
+        .single();
+
+      if (createError || !created) {
+        await sb.auth.signOut();
+        setErr("Profile could not be loaded. Please sign up again or contact support.");
+        return;
+      }
+
+      setUser(created as User);
+      const redirect =
+        params.get("redirect") ||
+        (created.role === "owner" ? "/dashboard/owner" : "/dashboard/user");
+      router.push(redirect);
       return;
     }
 

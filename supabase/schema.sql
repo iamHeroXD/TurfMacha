@@ -1,6 +1,7 @@
 -- ============================================================
 -- TurfMacha - Complete Production Database Schema
 -- Run this in Supabase SQL Editor
+-- Fully idempotent: safe to re-run on an existing database.
 -- ============================================================
 
 -- Enable extensions
@@ -117,11 +118,10 @@ CREATE INDEX IF NOT EXISTS idx_turfs_active   ON public.turfs(is_active);
 CREATE INDEX IF NOT EXISTS idx_turfs_rating   ON public.turfs(rating DESC);
 CREATE INDEX IF NOT EXISTS idx_turfs_location ON public.turfs(latitude, longitude);
 
-CREATE INDEX IF NOT EXISTS idx_bookings_user   ON public.bookings(user_id);
-CREATE INDEX IF NOT EXISTS idx_bookings_turf   ON public.bookings(turf_id);
-CREATE INDEX IF NOT EXISTS idx_bookings_date   ON public.bookings(slot_date);
-CREATE INDEX IF NOT EXISTS idx_bookings_status ON public.bookings(status);
--- Composite index for the double-booking query pattern
+CREATE INDEX IF NOT EXISTS idx_bookings_user     ON public.bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_turf     ON public.bookings(turf_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_date     ON public.bookings(slot_date);
+CREATE INDEX IF NOT EXISTS idx_bookings_status   ON public.bookings(status);
 CREATE INDEX IF NOT EXISTS idx_bookings_turf_date ON public.bookings(turf_id, slot_date);
 
 CREATE INDEX IF NOT EXISTS idx_reviews_turf    ON public.reviews(turf_id);
@@ -129,29 +129,29 @@ CREATE INDEX IF NOT EXISTS idx_favorites_user  ON public.favorites(user_id);
 
 -- ============================================================
 -- FUNCTIONS & TRIGGERS
+-- SET search_path on all functions prevents search_path injection.
+-- REVOKE EXECUTE on SECURITY DEFINER functions prevents direct invocation
+-- by anon/authenticated roles — they must only fire via trigger.
 -- ============================================================
 
 -- Auto-update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION public.update_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public, pg_catalog
+AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER users_updated_at BEFORE UPDATE ON public.users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
-CREATE TRIGGER turfs_updated_at BEFORE UPDATE ON public.turfs
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
-CREATE TRIGGER bookings_updated_at BEFORE UPDATE ON public.bookings
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+$$;
 
 -- Auto-update turf rating when review is added/updated/deleted
-CREATE OR REPLACE FUNCTION update_turf_rating()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION public.update_turf_rating()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public, pg_catalog
+AS $$
 BEGIN
     UPDATE public.turfs
     SET
@@ -168,20 +168,19 @@ BEGIN
     WHERE id = COALESCE(NEW.turf_id, OLD.turf_id);
     RETURN COALESCE(NEW, OLD);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
-CREATE TRIGGER reviews_update_rating
-    AFTER INSERT OR UPDATE OR DELETE ON public.reviews
-    FOR EACH ROW EXECUTE FUNCTION update_turf_rating();
-
--- ============================================================
--- AUTO-CREATE USER PROFILE ON SIGNUP
--- This trigger fires when a new auth.users row is created.
--- SECURITY DEFINER bypasses RLS so the insert always succeeds.
--- The client can also upsert additional fields (phone) after signup.
--- ============================================================
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
+-- Auto-create user profile on signup.
+-- SECURITY DEFINER: runs as the function owner (superuser) so it can bypass
+-- RLS and insert into public.users even when called from the auth.users trigger.
+-- search_path is pinned to prevent schema-injection attacks.
+-- REVOKE below prevents this function from being called directly by users.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_catalog
+AS $$
 BEGIN
     INSERT INTO public.users (id, email, full_name, phone, role)
     VALUES (
@@ -193,36 +192,68 @@ BEGIN
     )
     ON CONFLICT (id) DO UPDATE
         SET
-            full_name = EXCLUDED.full_name,
-            phone     = COALESCE(EXCLUDED.phone, public.users.phone),
-            role      = EXCLUDED.role,
+            full_name  = EXCLUDED.full_name,
+            phone      = COALESCE(EXCLUDED.phone, public.users.phone),
+            role       = EXCLUDED.role,
             updated_at = NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
+-- Restrict direct invocation of SECURITY DEFINER functions.
+-- They must only fire via trigger — never called directly by clients.
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM authenticated;
+
+-- Idempotent triggers (DROP IF EXISTS + CREATE)
+DROP TRIGGER IF EXISTS users_updated_at    ON public.users;
+DROP TRIGGER IF EXISTS turfs_updated_at    ON public.turfs;
+DROP TRIGGER IF EXISTS bookings_updated_at ON public.bookings;
+DROP TRIGGER IF EXISTS reviews_update_rating ON public.reviews;
+
+CREATE TRIGGER users_updated_at
+    BEFORE UPDATE ON public.users
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+CREATE TRIGGER turfs_updated_at
+    BEFORE UPDATE ON public.turfs
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+CREATE TRIGGER bookings_updated_at
+    BEFORE UPDATE ON public.bookings
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+CREATE TRIGGER reviews_update_rating
+    AFTER INSERT OR UPDATE OR DELETE ON public.reviews
+    FOR EACH ROW EXECUTE FUNCTION public.update_turf_rating();
+
+-- on_auth_user_created uses CREATE OR REPLACE TRIGGER (Postgres 14+)
 CREATE OR REPLACE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================================
-ALTER TABLE public.users        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.owner_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.turfs        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.bookings     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reviews      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.favorites    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.turfs          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bookings       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.favorites      ENABLE ROW LEVEL SECURITY;
 
 -- ── USERS policies ──────────────────────────────────────────
+DROP POLICY IF EXISTS "Public profiles are viewable"      ON public.users;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.users;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.users;
 
 -- All authenticated users can read all profiles (needed for owner dashboards)
 CREATE POLICY "Public profiles are viewable"
     ON public.users FOR SELECT
     USING (TRUE);
 
--- Users can insert their own profile row (needed for client-side upsert after signup)
+-- Users can insert their own profile row (client-side upsert after signup)
 CREATE POLICY "Users can insert their own profile"
     ON public.users FOR INSERT
     WITH CHECK (auth.uid() = id);
@@ -234,6 +265,9 @@ CREATE POLICY "Users can update their own profile"
     WITH CHECK (auth.uid() = id);
 
 -- ── OWNER_PROFILES policies ─────────────────────────────────
+DROP POLICY IF EXISTS "Owners can manage their profile" ON public.owner_profiles;
+DROP POLICY IF EXISTS "Owner profiles are public"       ON public.owner_profiles;
+
 CREATE POLICY "Owners can manage their profile"
     ON public.owner_profiles FOR ALL
     USING (auth.uid() = user_id)
@@ -244,6 +278,11 @@ CREATE POLICY "Owner profiles are public"
     USING (TRUE);
 
 -- ── TURFS policies ───────────────────────────────────────────
+DROP POLICY IF EXISTS "Active turfs are publicly viewable" ON public.turfs;
+DROP POLICY IF EXISTS "Owners can insert turfs"            ON public.turfs;
+DROP POLICY IF EXISTS "Owners can update their turfs"      ON public.turfs;
+DROP POLICY IF EXISTS "Owners can delete their turfs"      ON public.turfs;
+
 CREATE POLICY "Active turfs are publicly viewable"
     ON public.turfs FOR SELECT
     USING (is_active = TRUE OR auth.uid() = owner_id);
@@ -268,6 +307,10 @@ CREATE POLICY "Owners can delete their turfs"
     USING (auth.uid() = owner_id);
 
 -- ── BOOKINGS policies ────────────────────────────────────────
+DROP POLICY IF EXISTS "Users and owners can view relevant bookings" ON public.bookings;
+DROP POLICY IF EXISTS "Authenticated users can create bookings"     ON public.bookings;
+DROP POLICY IF EXISTS "Users can cancel their own bookings"         ON public.bookings;
+
 -- Players see their own bookings; owners see bookings for their turfs
 CREATE POLICY "Users and owners can view relevant bookings"
     ON public.bookings FOR SELECT
@@ -289,6 +332,11 @@ CREATE POLICY "Users can cancel their own bookings"
     WITH CHECK (auth.uid() = user_id);
 
 -- ── REVIEWS policies ─────────────────────────────────────────
+DROP POLICY IF EXISTS "Reviews are publicly viewable"       ON public.reviews;
+DROP POLICY IF EXISTS "Authenticated users can create reviews" ON public.reviews;
+DROP POLICY IF EXISTS "Users can update their own reviews"  ON public.reviews;
+DROP POLICY IF EXISTS "Users can delete their own reviews"  ON public.reviews;
+
 CREATE POLICY "Reviews are publicly viewable"
     ON public.reviews FOR SELECT
     USING (TRUE);
@@ -306,6 +354,8 @@ CREATE POLICY "Users can delete their own reviews"
     USING (auth.uid() = user_id);
 
 -- ── FAVORITES policies ───────────────────────────────────────
+DROP POLICY IF EXISTS "Users can manage their favorites" ON public.favorites;
+
 CREATE POLICY "Users can manage their favorites"
     ON public.favorites FOR ALL
     USING (auth.uid() = user_id)
