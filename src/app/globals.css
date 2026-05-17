@@ -46,38 +46,43 @@
     scroll-behavior: smooth;
   }
 
-  /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-background;
+    @apply bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted rounded-full;
+    @apply bg-white/10 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground;
+    @apply bg-white/20;
   }
 }
 
 @layer components {
+  /* Glass effects */
   .glass {
     @apply bg-white/5 backdrop-blur-md border border-white/10;
   }
 
   .glass-card {
-    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+    @apply bg-white/[0.04] backdrop-blur-md border border-white/[0.08] rounded-2xl;
   }
 
   .glass-strong {
     @apply bg-white/10 backdrop-blur-xl border border-white/20;
   }
 
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:bg-white/[0.07] hover:border-white/15 hover:shadow-xl hover:shadow-black/30;
+  }
+
+  /* Typography */
   .gradient-text {
     @apply bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent;
   }
@@ -86,16 +91,17 @@
     @apply bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent;
   }
 
+  /* Buttons */
   .btn-primary {
     @apply bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-semibold
            px-6 py-3 rounded-xl transition-all duration-300
-           hover:from-emerald-400 hover:to-cyan-400 hover:shadow-lg hover:shadow-emerald-500/25
-           active:scale-95;
+           hover:from-emerald-400 hover:to-cyan-400 hover:shadow-lg hover:shadow-emerald-500/30
+           active:scale-[0.97];
   }
 
   .btn-glass {
     @apply glass text-white font-medium px-6 py-3 rounded-xl
-           transition-all duration-300 hover:bg-white/10 active:scale-95;
+           transition-all duration-300 hover:bg-white/10 active:scale-[0.97];
   }
 
   .input-glass {
@@ -104,10 +110,12 @@
            transition-all duration-300;
   }
 
+  /* Cards */
   .card-hover {
     @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/50;
   }
 
+  /* Skeleton loading */
   .skeleton {
     @apply bg-white/5 animate-pulse rounded-xl;
   }
@@ -116,38 +124,41 @@
     background: linear-gradient(
       90deg,
       rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.04) 50%,
       rgba(255, 255, 255, 0) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 2s linear infinite;
   }
 
+  /* Badges */
   .sport-badge {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
            bg-white/10 border border-white/20 text-white/80;
   }
 
   .status-confirmed {
-    @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
+    @apply bg-emerald-500/15 text-emerald-400 border border-emerald-500/25;
   }
 
   .status-pending {
-    @apply bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
+    @apply bg-amber-500/15 text-amber-400 border border-amber-500/25;
   }
 
   .status-cancelled {
-    @apply bg-red-500/20 text-red-400 border border-red-500/30;
+    @apply bg-red-500/15 text-red-400 border border-red-500/25;
   }
 
+  /* Navigation */
   .nav-link {
-    @apply text-white/60 hover:text-white transition-colors duration-200 text-sm font-medium;
+    @apply text-white/60 hover:text-white transition-colors duration-200 text-sm font-medium relative;
   }
 
   .nav-link-active {
-    @apply text-emerald-400 font-semibold;
+    @apply text-white font-semibold;
   }
 
+  /* Section headings */
   .section-title {
     @apply text-2xl font-bold text-white tracking-tight;
   }
@@ -155,56 +166,100 @@
   .section-subtitle {
     @apply text-white/50 text-sm mt-1;
   }
+
+  /* Glow effects */
+  .glow-emerald {
+    @apply shadow-lg shadow-emerald-500/25;
+  }
+
+  .glow-cyan {
+    @apply shadow-lg shadow-cyan-500/25;
+  }
+
+  /* Feature icon containers */
+  .icon-box {
+    @apply w-12 h-12 rounded-2xl flex items-center justify-center shrink-0;
+  }
+
+  /* Divider */
+  .divider {
+    @apply border-t border-white/8;
+  }
+
+  /* Price display */
+  .price-tag {
+    @apply font-bold text-emerald-400;
+  }
+
+  /* Rating stars */
+  .star-filled {
+    color: #fbbf24;
+    fill: #fbbf24;
+  }
+
+  .star-empty {
+    color: rgba(255, 255, 255, 0.15);
+  }
+
+  /* Toast */
+  .toast-success {
+    @apply bg-emerald-500/20 border border-emerald-500/30 text-emerald-300;
+  }
+
+  .toast-error {
+    @apply bg-red-500/20 border border-red-500/30 text-red-300;
+  }
 }
 
-/* Leaflet map dark theme overrides */
+/* Leaflet dark theme */
 .leaflet-container {
-  background: #1a1a2e !important;
+  background: #0f0f23 !important;
   border-radius: 1rem;
 }
 
 .leaflet-tile {
-  filter: brightness(0.7) saturate(0.8) hue-rotate(190deg);
+  filter: brightness(0.65) saturate(0.7) hue-rotate(190deg);
 }
 
 .leaflet-control-attribution {
   background: rgba(0, 0, 0, 0.5) !important;
-  color: rgba(255, 255, 255, 0.4) !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  font-size: 10px !important;
 }
 
 .leaflet-control-zoom a {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(15, 15, 35, 0.9) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
-/* Custom marker */
+.leaflet-popup-content-wrapper {
+  background: rgba(10, 10, 26, 0.97) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  color: white !important;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(10, 10, 26, 0.97) !important;
+}
+
 .custom-marker {
-  background: linear-gradient(135deg, #00d4aa, #00b894);
+  background: linear-gradient(135deg, #10b981, #06b6d4);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
-  box-shadow: 0 4px 15px rgba(0, 212, 170, 0.4);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
 }
 
-/* Mobile bottom navigation safe area */
+/* Mobile safe areas */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Smooth page transitions */
-.page-enter {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.page-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms, transform 300ms;
-}
-
-/* Hide scrollbar on mobile nav */
+/* Hide scrollbar utility */
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -214,39 +269,14 @@
   display: none;
 }
 
-/* Rating stars */
-.star-filled {
-  color: #f6d365;
-  fill: #f6d365;
+/* Gradient borders */
+.border-gradient {
+  border: 1px solid transparent;
+  background-clip: padding-box;
 }
 
-.star-empty {
-  color: rgba(255, 255, 255, 0.2);
-}
-
-/* Toast custom styling */
-.toast-success {
-  @apply bg-emerald-500/20 border border-emerald-500/30 text-emerald-300;
-}
-
-.toast-error {
-  @apply bg-red-500/20 border border-red-500/30 text-red-300;
-}
-
-/* Price tag */
-.price-tag {
-  @apply font-bold text-emerald-400;
-}
-
-/* Map popup */
-.leaflet-popup-content-wrapper {
-  background: rgba(15, 15, 35, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 12px !important;
-  color: white !important;
-  backdrop-filter: blur(12px);
-}
-
-.leaflet-popup-tip {
-  background: rgba(15, 15, 35, 0.95) !important;
+/* Text selection */
+::selection {
+  background: rgba(16, 185, 129, 0.3);
+  color: white;
 }
