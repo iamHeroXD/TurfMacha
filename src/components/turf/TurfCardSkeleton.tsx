@@ -1,16 +1,20 @@
+function Pulse({ className }: { className: string }) {
+  return <div className={`rounded-md skeleton ${className}`} />;
+}
+
 export function TurfCardSkeleton() {
   return (
     <div className="rounded-xl border border-white/[0.07] bg-[#111111] overflow-hidden">
-      <div className="h-44 bg-white/[0.04] animate-pulse" />
-      <div className="p-4 space-y-2.5">
+      <div className="h-44 skeleton rounded-none" />
+      <div className="p-4 space-y-3">
         <div className="flex justify-between gap-3">
-          <div className="h-4 bg-white/[0.06] rounded animate-pulse flex-1" />
-          <div className="h-4 bg-white/[0.06] rounded animate-pulse w-12" />
+          <Pulse className="h-4 flex-1" />
+          <Pulse className="h-4 w-10" />
         </div>
-        <div className="h-3 bg-white/[0.04] rounded animate-pulse w-3/4" />
+        <Pulse className="h-3 w-3/4" />
         <div className="flex justify-between">
-          <div className="h-3 bg-white/[0.04] rounded animate-pulse w-1/3" />
-          <div className="h-3 bg-white/[0.04] rounded animate-pulse w-1/4" />
+          <Pulse className="h-3 w-1/3" />
+          <Pulse className="h-3 w-1/4" />
         </div>
       </div>
     </div>
