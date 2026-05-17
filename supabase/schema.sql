@@ -503,23 +503,70 @@ CREATE POLICY "Users and owners can view relevant bookings"
         OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
     );
 
+-- ============================================================
+-- PHASE 3 ADDITIONS: Security hardening — is_admin() helper,
+-- WITH CHECK clauses, performance indexes
+-- ============================================================
+
+-- is_admin() SECURITY DEFINER helper:
+-- Avoids recursion and is faster than inline EXISTS on every RLS row check.
+-- Checks that the admin is not suspended (prevents suspended admins from acting).
+DROP FUNCTION IF EXISTS public.is_admin();
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_catalog
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.users
+    WHERE id = auth.uid() AND role = 'admin' AND is_suspended = FALSE
+  )
+$$;
+
+-- Allow authenticated role to call is_admin() (not PUBLIC/anon)
+REVOKE EXECUTE ON FUNCTION public.is_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+
+-- ── Rebuilt admin policies using is_admin() ──────────────────
+
 DROP POLICY IF EXISTS "Admins can manage all bookings" ON public.bookings;
 CREATE POLICY "Admins can manage all bookings"
     ON public.bookings FOR UPDATE
-    USING (EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'));
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 DROP POLICY IF EXISTS "Admins can manage all turfs" ON public.turfs;
 CREATE POLICY "Admins can manage all turfs"
     ON public.turfs FOR ALL
-    USING (EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'))
-    WITH CHECK (EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'));
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 DROP POLICY IF EXISTS "Admins can update any profile" ON public.users;
 CREATE POLICY "Admins can update any profile"
     ON public.users FOR UPDATE
-    USING (EXISTS (SELECT 1 FROM public.users u WHERE u.id = auth.uid() AND u.role = 'admin'));
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 DROP POLICY IF EXISTS "Admins can delete any user" ON public.users;
 CREATE POLICY "Admins can delete any user"
     ON public.users FOR DELETE
-    USING (EXISTS (SELECT 1 FROM public.users u WHERE u.id = auth.uid() AND u.role = 'admin'));
+    USING (public.is_admin());
+
+-- Also rebuild bookings SELECT policy using is_admin()
+DROP POLICY IF EXISTS "Users and owners can view relevant bookings" ON public.bookings;
+CREATE POLICY "Users and owners can view relevant bookings"
+    ON public.bookings FOR SELECT
+    USING (
+        auth.uid() = user_id
+        OR EXISTS (SELECT 1 FROM public.turfs WHERE id = bookings.turf_id AND owner_id = auth.uid())
+        OR public.is_admin()
+    );
+
+-- ── Performance indexes ──────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_users_role      ON public.users(role);
+CREATE INDEX IF NOT EXISTS idx_users_suspended ON public.users(is_suspended) WHERE is_suspended = TRUE;
+
+-- Promote rohansija@gmail.com as admin (run this manually if not already done)
+-- UPDATE public.users SET role = 'admin' WHERE email = 'rohansija@gmail.com';

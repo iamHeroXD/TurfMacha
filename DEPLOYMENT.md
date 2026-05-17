@@ -16,9 +16,19 @@ Create a `.env.local` file (never commit this file):
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...your-anon-key...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...your-service-role-key...
+NEXT_PUBLIC_APP_URL=https://your-vercel-domain.vercel.app
 ```
 
-These are the **only** required environment variables for the app.
+| Variable | Where to find | Required for |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL | All features |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon key | All features |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → service_role key | Admin user deletion |
+| `NEXT_PUBLIC_APP_URL` | Your Vercel production URL | OG metadata, OAuth |
+
+> **Security note:** `SUPABASE_SERVICE_ROLE_KEY` is a secret — never expose it to the browser.
+> It is only used in server-side API routes (`/api/admin/*`). Do NOT prefix it with `NEXT_PUBLIC_`.
 
 ---
 

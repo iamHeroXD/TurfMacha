@@ -16,6 +16,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://turfmacha.vercel.app"
+  ),
   title: {
     default: "TurfMacha — Book Sports Turf Near You",
     template: "%s | TurfMacha",

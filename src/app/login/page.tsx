@@ -27,8 +27,12 @@ function LoginContent() {
   const params = useSearchParams();
   const { setUser } = useAuthStore();
   const [show, setShow] = useState(false);
-  const [err, setErr] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Show error from URL param (set by OAuth callback on failure, or after password reset)
+  const urlError = params.get("error");
+  const urlSuccess = params.get("reset");
+  const [err, setErr] = useState(urlError ? decodeURIComponent(urlError) : "");
 
   const {
     register,
@@ -148,6 +152,17 @@ function LoginContent() {
             Create an account
           </Link>
         </motion.p>
+
+        {/* Password reset success message */}
+        {urlSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-xs text-brand-400 bg-brand-400/[0.07] border border-brand-400/20 rounded-lg px-3 py-2.5 mb-4"
+          >
+            Password updated! Sign in with your new password.
+          </motion.div>
+        )}
 
         {/* Google OAuth */}
         <motion.div

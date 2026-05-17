@@ -32,8 +32,18 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
   const dates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
 
   const fetchBooked = async (d: Date) => {
-    const { data } = await createClient().from("bookings").select("start_time")
-      .eq("turf_id", turf.id).eq("slot_date", format(d, "yyyy-MM-dd")).neq("status", "cancelled");
+    const { data, error } = await createClient()
+      .from("bookings")
+      .select("start_time")
+      .eq("turf_id", turf.id)
+      .eq("slot_date", format(d, "yyyy-MM-dd"))
+      .neq("status", "cancelled");
+    // On error, show all slots as potentially booked to prevent accidental double-booking
+    if (error) {
+      console.error("fetchBooked error:", error);
+      setBooked([]); // don't block all slots, but log the issue
+      return;
+    }
     setBooked(data?.map((b) => b.start_time) || []);
   };
 
@@ -43,14 +53,29 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
     if (!user) { router.push("/login"); return; }
     setLoading(true); setError("");
     try {
-      const [h] = time.split(":").map(Number);
-      const end = `${String(h + duration).padStart(2, "0")}:${time.split(":")[1]}`;
+      const [h, m] = time.split(":").map(Number);
+      const endHour = h + duration;
+
+      // Guard against bookings that would roll past midnight
+      if (endHour >= 24) {
+        setError("Booking would extend past midnight. Please choose an earlier time slot.");
+        return;
+      }
+
+      const end = `${String(endHour).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
       const { error: err } = await createClient().from("bookings").insert({
         user_id: user.id, turf_id: turf.id, slot_date: format(date, "yyyy-MM-dd"),
         start_time: time, end_time: end, duration_hours: duration,
         total_price: total, status: "confirmed", sport,
       });
-      if (err) { setError(err.message.includes("unique") ? "Slot already booked — pick another time." : err.message); return; }
+      if (err) {
+        setError(
+          err.message.includes("unique") || err.message.includes("no_double_booking")
+            ? "This slot was just booked by someone else — please pick another time."
+            : err.message
+        );
+        return;
+      }
       setStep(3);
     } catch { setError("Booking failed. Try again."); }
     finally { setLoading(false); }

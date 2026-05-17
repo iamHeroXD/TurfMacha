@@ -19,7 +19,11 @@ export default function AdminTurfsPage() {
 
   const fetchTurfs = useCallback(async () => {
     const sb = createClient();
-    const { data } = await sb.from("turfs").select("*").order("created_at", { ascending: false });
+    const { data, error } = await sb.from("turfs").select("*").order("created_at", { ascending: false });
+    if (error) {
+      toast({ title: "Failed to load turfs", description: error.message, variant: "destructive" });
+      return;
+    }
     setTurfs((data as Turf[]) ?? []);
     setLoading(false);
   }, []);
@@ -28,23 +32,26 @@ export default function AdminTurfsPage() {
 
   const toggleFeatured = async (t: Turf) => {
     const sb = createClient();
-    await sb.from("turfs").update({ is_featured: !t.is_featured }).eq("id", t.id);
-    setTurfs(turfs.map(x => x.id === t.id ? { ...x, is_featured: !t.is_featured } : x));
+    const { error } = await sb.from("turfs").update({ is_featured: !t.is_featured }).eq("id", t.id);
+    if (error) { toast({ title: "Failed", description: error.message, variant: "destructive" }); return; }
+    setTurfs((prev) => prev.map((x) => (x.id === t.id ? { ...x, is_featured: !t.is_featured } : x)));
     toast({ title: t.is_featured ? "Removed from featured" : "Marked as featured" });
   };
 
   const toggleActive = async (t: Turf) => {
     const sb = createClient();
-    await sb.from("turfs").update({ is_active: !t.is_active }).eq("id", t.id);
-    setTurfs(turfs.map(x => x.id === t.id ? { ...x, is_active: !t.is_active } : x));
+    const { error } = await sb.from("turfs").update({ is_active: !t.is_active }).eq("id", t.id);
+    if (error) { toast({ title: "Failed", description: error.message, variant: "destructive" }); return; }
+    setTurfs((prev) => prev.map((x) => (x.id === t.id ? { ...x, is_active: !t.is_active } : x)));
     toast({ title: t.is_active ? "Turf deactivated" : "Turf activated" });
   };
 
   const deleteTurf = async (id: string) => {
-    if (!confirm("Delete this turf? All bookings will be cancelled.")) return;
+    if (!confirm("Delete this turf? All associated bookings will be removed.")) return;
     const sb = createClient();
-    await sb.from("turfs").delete().eq("id", id);
-    setTurfs(turfs.filter(x => x.id !== id));
+    const { error } = await sb.from("turfs").delete().eq("id", id);
+    if (error) { toast({ title: "Delete failed", description: error.message, variant: "destructive" }); return; }
+    setTurfs((prev) => prev.filter((x) => x.id !== id));
     toast({ title: "Turf deleted" });
   };
 

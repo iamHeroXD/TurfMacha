@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { ArrowRight, MapPin, Zap, Shield, Clock, Star, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TurfCard } from "@/components/turf/TurfCard";
@@ -63,6 +64,10 @@ function Divider() {
 export default function HomePage() {
   const { latitude, longitude } = useLocationStore();
   const { sport, setSport } = useFilterStore();
+  // Prevent hydration mismatch: latitude comes from localStorage (Zustand persist)
+  // which is only available after client hydration
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const { turfs: nearby,  loading: nearbyLoading  } = useTurfs({ userLat: latitude, userLon: longitude, limit: 6 });
   const { turfs: popular, loading: popularLoading } = useTurfs({ sport, userLat: latitude, userLon: longitude, limit: 6 });
@@ -212,8 +217,8 @@ export default function HomePage() {
 
       <Divider />
 
-      {/* Nearby */}
-      {(latitude || nearby.length > 0) && (
+      {/* Nearby — guarded with mounted check to prevent hydration mismatch */}
+      {mounted && (latitude || nearby.length > 0) && (
         <>
           <section className="py-16 px-4">
             <div className="max-w-6xl mx-auto">

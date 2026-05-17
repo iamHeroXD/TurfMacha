@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,22 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const [show, setShow] = useState(false);
   const [err, setErr] = useState("");
+  const [checking, setChecking] = useState(true);
+  const [hasSession, setHasSession] = useState(false);
+
+  // Supabase puts a recovery session in the URL hash when user clicks reset link
+  useEffect(() => {
+    const sb = createClient();
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setHasSession(true);
+      } else {
+        // No session — user probably navigated directly without clicking the reset email
+        router.replace("/forgot-password?expired=1");
+      }
+      setChecking(false);
+    });
+  }, [router]);
 
   const {
     register,
@@ -42,8 +58,18 @@ export default function ResetPasswordPage() {
     const sb = createClient();
     const { error } = await sb.auth.updateUser({ password: data.password });
     if (error) { setErr(error.message); return; }
-    router.push("/dashboard/user?reset=success");
+    router.push("/login?reset=success");
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <div className="w-5 h-5 border-2 border-brand-400/30 border-t-brand-400 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!hasSession) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0a0a0a]">

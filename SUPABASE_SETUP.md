@@ -60,11 +60,17 @@ Go to **Project Settings → API**:
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `anon` / public key |
 
-Add these to your `.env.local` file:
+Add these to your `.env.local` file (and Vercel environment variables):
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...   # From Project Settings → API → service_role (SECRET)
+NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
 ```
+
+> **IMPORTANT:** `SUPABASE_SERVICE_ROLE_KEY` is required for the admin user deletion feature.
+> It is server-only and is NEVER exposed to the browser. Add it to Vercel environment variables,
+> mark it as **Production + Preview** only, NOT as a `NEXT_PUBLIC_` variable.
 
 ---
 
@@ -120,7 +126,42 @@ DELETE FROM auth.users WHERE email = 'test@example.com';
 
 ---
 
-## 8. Testing Auth Flow (Checklist)
+## 8. Admin Setup
+
+### Promote an account to admin
+Run this in SQL Editor (replace with your email):
+```sql
+UPDATE public.users SET role = 'admin' WHERE email = 'rohansija@gmail.com';
+```
+
+### Set up the `is_admin()` function
+The Phase 3 security additions in `schema.sql` add a `is_admin()` SECURITY DEFINER function.
+Re-run the full `schema.sql` after updating — it is idempotent and safe to re-run.
+
+---
+
+## 9. Google OAuth Branding (Fix "supabase.co" in consent screen)
+
+The Google OAuth consent screen shows your Supabase project URL because that's where the
+OAuth redirect happens. To show "TurfMacha" branding instead:
+
+1. Go to [Google Cloud Console → APIs & Services → OAuth consent screen](https://console.cloud.google.com/apis/oauth-consent)
+2. Set **App name**: `TurfMacha`
+3. Set **App logo**: upload `logoofturfmacha.png`
+4. Set **App homepage**: `https://your-vercel-domain.vercel.app`
+5. Set **Privacy policy link**: `https://your-vercel-domain.vercel.app/privacy` (create this page)
+6. Set **Support email**: your email
+7. Under **Authorized domains**, add: `your-vercel-domain.vercel.app`
+8. Save → If in "Testing" mode, add test users; for production, click **Publish App**
+
+Then in Supabase:
+- **Authentication → URL Configuration**
+- **Site URL**: `https://your-vercel-domain.vercel.app`
+- **Redirect URLs**: `https://your-vercel-domain.vercel.app/**`
+
+---
+
+## 10. Testing Auth Flow (Checklist)
 
 - [ ] Sign up as **Player** → lands on `/dashboard/user`
 - [ ] Sign up as **Turf Owner** → lands on `/dashboard/owner`
@@ -128,3 +169,8 @@ DELETE FROM auth.users WHERE email = 'test@example.com';
 - [ ] Log in again → profile loads correctly, role-based redirect works
 - [ ] Visit `/dashboard` without auth → redirects to `/login`
 - [ ] Already logged in → visiting `/login` redirects to dashboard
+- [ ] Google Sign-in → consent screen shows "TurfMacha" (after Google Cloud Console config)
+- [ ] Admin login → `/admin` shows dashboard, not "access required"
+- [ ] Admin delete user → user cannot log back in
+- [ ] Forgot password → check email → reset-password page → success
+- [ ] Install PWA → login → restart app → auth persists

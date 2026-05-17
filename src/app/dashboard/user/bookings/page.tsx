@@ -36,8 +36,8 @@ export default function BookingsPage() {
     fetchBookings();
   }, [user]);
 
-  const upcoming = bookings.filter((b) => b.status !== "cancelled" && new Date(`${b.slot_date}T${b.start_time}`) >= new Date());
-  const past = bookings.filter((b) => b.status === "cancelled" || new Date(`${b.slot_date}T${b.start_time}`) < new Date());
+  const upcoming = bookings.filter((b) => b.status !== "cancelled" && new Date(`${b.slot_date} ${b.start_time}`) >= new Date());
+  const past = bookings.filter((b) => b.status === "cancelled" || new Date(`${b.slot_date} ${b.start_time}`) < new Date());
 
   return (
     <div className="min-h-screen pt-14 pb-24 md:pb-8 px-4">

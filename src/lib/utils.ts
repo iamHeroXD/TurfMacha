@@ -146,8 +146,11 @@ export function truncate(str: string, length: number): string {
 }
 
 export function getInitials(name: string): string {
+  if (!name?.trim()) return "?";
   return name
+    .trim()
     .split(" ")
+    .filter(Boolean)
     .map((n) => n[0])
     .join("")
     .toUpperCase()

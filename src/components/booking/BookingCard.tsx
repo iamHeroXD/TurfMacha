@@ -23,9 +23,20 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
     if (!confirm("Cancel this booking?")) return;
     setCancelling(true);
     try {
-      await createClient().from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
+      const { error } = await createClient()
+        .from("bookings")
+        .update({ status: "cancelled" })
+        .eq("id", booking.id);
+      if (error) throw error;
       onCancel?.();
-    } finally { setCancelling(false); }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Could not cancel booking";
+      // Import toast isn't available here — use a simple alert as fallback
+      console.error("Cancel booking error:", msg);
+      alert(`Cancel failed: ${msg}`);
+    } finally {
+      setCancelling(false);
+    }
   };
 
   const statusVariant: Record<string, "success" | "warning" | "destructive"> = {

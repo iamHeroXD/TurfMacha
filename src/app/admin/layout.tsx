@@ -1,42 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { LayoutDashboard, Users, Building2, Calendar, ShieldAlert } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, Users, Building2, Calendar, ShieldAlert, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/admin",           label: "Overview",  icon: LayoutDashboard },
-  { href: "/admin/users",     label: "Users",     icon: Users           },
-  { href: "/admin/turfs",     label: "Turfs",     icon: Building2       },
-  { href: "/admin/bookings",  label: "Bookings",  icon: Calendar        },
+  { href: "/admin",          label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/users",    label: "Users",    icon: Users           },
+  { href: "/admin/turfs",    label: "Turfs",    icon: Building2       },
+  { href: "/admin/bookings", label: "Bookings", icon: Calendar        },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, initialized } = useAuthStore();
-  const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (!initialized) return;
-    if (!user || user.role !== "admin") {
-      router.replace("/");
-    }
-  }, [user, initialized, router]);
+  // Show spinner while auth state is being resolved — prevents "access required" flash
+  if (!initialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <Loader2 className="h-6 w-6 text-white/30 animate-spin" />
+      </div>
+    );
+  }
 
-  if (!initialized || !user || user.role !== "admin") {
+  // Auth confirmed but not admin — show access denied
+  if (!user || user.role !== "admin") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
         <div className="text-center">
           <ShieldAlert className="h-10 w-10 text-white/20 mx-auto mb-3" />
           <p className="text-white/40 text-sm">Admin access required</p>
+          <p className="text-white/25 text-xs mt-1">Log in with an admin account to continue</p>
         </div>
       </div>
     );
   }
 
+  // Confirmed admin — render panel
   return (
     <div className="min-h-screen pt-14 bg-[#0a0a0a]">
       <div className="max-w-6xl mx-auto px-4 py-6 flex gap-6">
@@ -85,8 +88,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
-        {/* Main */}
-        <main className="flex-1 min-w-0">{children}</main>
+        {/* Main content */}
+        <main className="flex-1 min-w-0 pb-32 md:pb-0">{children}</main>
       </div>
     </div>
   );

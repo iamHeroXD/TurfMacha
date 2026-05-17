@@ -18,7 +18,14 @@ export default function AdminUsersPage() {
 
   const fetchUsers = useCallback(async () => {
     const sb = createClient();
-    const { data } = await sb.from("users").select("*").order("created_at", { ascending: false });
+    const { data, error } = await sb
+      .from("users")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      toast({ title: "Failed to load users", description: error.message, variant: "destructive" });
+      return;
+    }
     setUsers((data as User[]) ?? []);
     setLoading(false);
   }, []);
@@ -27,24 +34,51 @@ export default function AdminUsersPage() {
 
   const toggleSuspend = async (u: User) => {
     const sb = createClient();
-    await sb.from("users").update({ is_suspended: !u.is_suspended }).eq("id", u.id);
-    setUsers(users.map(x => x.id === u.id ? { ...x, is_suspended: !u.is_suspended } : x));
+    const { error } = await sb
+      .from("users")
+      .update({ is_suspended: !u.is_suspended })
+      .eq("id", u.id);
+    if (error) {
+      toast({ title: "Failed to update user", description: error.message, variant: "destructive" });
+      return;
+    }
+    setUsers((prev) => prev.map((x) => (x.id === u.id ? { ...x, is_suspended: !u.is_suspended } : x)));
     toast({ title: u.is_suspended ? "User unsuspended" : "User suspended" });
   };
 
   const changeRole = async (id: string, role: UserRole) => {
     const sb = createClient();
-    await sb.from("users").update({ role }).eq("id", id);
-    setUsers(users.map(x => x.id === id ? { ...x, role } : x));
+    const { error } = await sb.from("users").update({ role }).eq("id", id);
+    if (error) {
+      toast({ title: "Failed to change role", description: error.message, variant: "destructive" });
+      return;
+    }
+    setUsers((prev) => prev.map((x) => (x.id === id ? { ...x, role } : x)));
     toast({ title: "Role updated" });
   };
 
-  const deleteUser = async (id: string) => {
-    if (!confirm("Delete this user? This cannot be undone.")) return;
-    const sb = createClient();
-    await sb.from("users").delete().eq("id", id);
-    setUsers(users.filter(x => x.id !== id));
-    toast({ title: "User deleted" });
+  const deleteUser = async (u: User) => {
+    if (!confirm(`Delete ${u.full_name}? This removes their account and all data permanently.`)) return;
+
+    // Call server API route which uses service role key to delete from auth.users (cascades to public.users)
+    const res = await fetch("/api/admin/delete-user", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: u.id }),
+    });
+
+    const result = await res.json();
+    if (!res.ok) {
+      toast({
+        title: "Delete failed",
+        description: result.error || "Could not delete user",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUsers((prev) => prev.filter((x) => x.id !== u.id));
+    toast({ title: "User deleted permanently" });
   };
 
   return (
@@ -58,6 +92,10 @@ export default function AdminUsersPage() {
 
       {loading ? (
         <div className="space-y-2">{[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+      ) : users.length === 0 ? (
+        <div className="py-16 text-center rounded-xl border border-white/[0.07]">
+          <p className="text-white/40 text-sm">No users found</p>
+        </div>
       ) : (
         <div className="space-y-2">
           {users.map((u, i) => (
@@ -69,14 +107,18 @@ export default function AdminUsersPage() {
               className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.07] bg-[#111111]"
             >
               <div className="w-9 h-9 rounded-full bg-white/[0.05] flex items-center justify-center shrink-0 font-medium text-white/50 text-sm">
-                {u.full_name[0]}
+                {u.full_name?.[0] ?? "?"}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium text-white text-sm truncate">{u.full_name}</p>
-                  {u.is_suspended && <Badge variant="destructive" className="text-[10px]">Suspended</Badge>}
+                  {u.is_suspended && (
+                    <Badge variant="destructive" className="text-[10px]">Suspended</Badge>
+                  )}
                 </div>
-                <p className="text-xs text-white/35 truncate">{u.email} · {format(new Date(u.created_at), "d MMM yyyy")}</p>
+                <p className="text-xs text-white/35 truncate">
+                  {u.email} · {format(new Date(u.created_at), "d MMM yyyy")}
+                </p>
               </div>
               <Select value={u.role} onValueChange={(v) => changeRole(u.id, v as UserRole)}>
                 <SelectTrigger className="w-28 h-7 text-xs">
@@ -88,10 +130,23 @@ export default function AdminUsersPage() {
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
-              <Button size="icon-sm" variant="ghost" onClick={() => toggleSuspend(u)} title={u.is_suspended ? "Unsuspend" : "Suspend"}>
-                {u.is_suspended ? <ShieldCheck className="h-3.5 w-3.5 text-brand-400" /> : <ShieldOff className="h-3.5 w-3.5 text-amber-400" />}
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                onClick={() => toggleSuspend(u)}
+                title={u.is_suspended ? "Unsuspend" : "Suspend"}
+              >
+                {u.is_suspended
+                  ? <ShieldCheck className="h-3.5 w-3.5 text-brand-400" />
+                  : <ShieldOff className="h-3.5 w-3.5 text-amber-400" />}
               </Button>
-              <Button size="icon-sm" variant="ghost" className="text-red-400" onClick={() => deleteUser(u.id)} title="Delete">
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                onClick={() => deleteUser(u)}
+                title="Delete permanently"
+              >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </motion.div>

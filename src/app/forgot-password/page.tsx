@@ -17,6 +17,7 @@ type FormInput = z.infer<typeof schema>;
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
+  const [err, setErr] = useState("");
 
   const {
     register,
@@ -25,11 +26,20 @@ export default function ForgotPasswordPage() {
   } = useForm<FormInput>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: FormInput) => {
-    const sb = createClient();
-    await sb.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setSent(true);
+    setErr("");
+    try {
+      const sb = createClient();
+      const { error } = await sb.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        setErr(error.message);
+        return;
+      }
+      setSent(true);
+    } catch {
+      setErr("Failed to send reset link. Please check your connection and try again.");
+    }
   };
 
   return (
@@ -84,6 +94,10 @@ export default function ForgotPasswordPage() {
                   {...register("email")}
                 />
               </div>
+
+              {err && (
+                <p className="text-xs text-red-400 bg-red-500/[0.07] border border-red-500/20 rounded-lg px-3 py-2.5">{err}</p>
+              )}
 
               <Button type="submit" className="w-full" size="lg" loading={isSubmitting}>
                 Send reset link

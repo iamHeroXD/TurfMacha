@@ -111,9 +111,9 @@ export function TurfCard({ turf, index = 0 }: TurfCardProps) {
                   ))}
                 </div>
               )}
-              {turf.rewards_enabled && (
+              {turf.rewards_enabled && (turf.coins_per_booking ?? 0) > 0 && (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-brand-400/10 text-brand-400 border border-brand-400/20">
-                  <Coins className="h-2.5 w-2.5" /> +{turf.coins_per_booking} coins
+                  <Coins className="h-2.5 w-2.5" /> +{turf.coins_per_booking ?? 0} coins
                 </span>
               )}
             </div>
