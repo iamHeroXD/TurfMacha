@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Sport } from "@/types";
 import { SPORTS_CONFIG } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -14,34 +13,31 @@ const sports = Object.entries(SPORTS_CONFIG) as [Sport, (typeof SPORTS_CONFIG)[S
 
 export function SportFilter({ selected, onSelect }: SportFilterProps) {
   return (
-    <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
-      <motion.button
-        whileTap={{ scale: 0.95 }}
+    <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+      <button
         onClick={() => onSelect(undefined)}
         className={cn(
-          "flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium whitespace-nowrap transition-all duration-200 shrink-0",
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 border transition-colors duration-150",
           !selected
-            ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
-            : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+            ? "bg-white/[0.08] border-white/[0.12] text-white"
+            : "bg-transparent border-white/[0.07] text-white/50 hover:text-white hover:border-white/[0.12]"
         )}
       >
-        🏟️ All Sports
-      </motion.button>
-
-      {sports.map(([sport, config]) => (
-        <motion.button
+        All Sports
+      </button>
+      {sports.map(([sport, cfg]) => (
+        <button
           key={sport}
-          whileTap={{ scale: 0.95 }}
           onClick={() => onSelect(selected === sport ? undefined : sport)}
           className={cn(
-            "flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium whitespace-nowrap transition-all duration-200 shrink-0",
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 border transition-colors duration-150",
             selected === sport
-              ? `bg-gradient-to-r ${config.gradient} text-white border-transparent shadow-lg`
-              : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+              ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
+              : "bg-transparent border-white/[0.07] text-white/50 hover:text-white hover:border-white/[0.12]"
           )}
         >
-          {config.emoji} {config.label}
-        </motion.button>
+          {cfg.emoji} {cfg.label}
+        </button>
       ))}
     </div>
   );

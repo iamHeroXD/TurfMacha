@@ -2,8 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, Suspense, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { SlidersHorizontal, MapIcon, LayoutGrid, X, ChevronDown } from "lucide-react";
+import { LayoutGrid, Map, X, SlidersHorizontal } from "lucide-react";
 import { TurfCard } from "@/components/turf/TurfCard";
 import { TurfGridSkeleton } from "@/components/turf/TurfCardSkeleton";
 import { SportFilter } from "@/components/turf/SportFilter";
@@ -19,122 +18,92 @@ import { cn } from "@/lib/utils";
 
 const TurfMap = dynamic(() => import("@/components/map/TurfMap").then(m => ({ default: m.TurfMap })), {
   ssr: false,
-  loading: () => <div className="h-[450px] glass-card animate-pulse rounded-2xl" />,
+  loading: () => <div className="h-[420px] rounded-xl bg-white/[0.04] animate-pulse" />,
 });
 
-const SORT_OPTIONS = [
-  { value: "distance", label: "Nearest First" },
-  { value: "rating", label: "Highest Rated" },
-  { value: "price_asc", label: "Price: Low to High" },
-  { value: "price_desc", label: "Price: High to Low" },
-];
-
 function TurfsContent() {
-  const searchParams = useSearchParams();
+  const params = useSearchParams();
   const { latitude, longitude } = useLocationStore();
   const { sport, searchQuery, setSport, setSearchQuery } = useFilterStore();
-  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
-  const [sortBy, setSortBy] = useState("distance");
+  const [view, setView] = useState<"grid" | "map">("grid");
+  const [sort, setSort] = useState("distance");
 
   useEffect(() => {
-    const urlSport = searchParams.get("sport") as Sport;
-    if (urlSport) setSport(urlSport);
-  }, [searchParams, setSport]);
+    const s = params.get("sport") as Sport;
+    if (s) setSport(s);
+  }, [params, setSport]);
 
-  const { turfs, loading } = useTurfs({
-    sport,
-    userLat: latitude,
-    userLon: longitude,
-    searchQuery,
+  const { turfs, loading } = useTurfs({ sport, userLat: latitude, userLon: longitude, searchQuery });
+
+  const sorted = [...turfs].sort((a, b) => {
+    if (sort === "price_asc") return a.price_per_hour - b.price_per_hour;
+    if (sort === "price_desc") return b.price_per_hour - a.price_per_hour;
+    if (sort === "rating") return (b.rating || 0) - (a.rating || 0);
+    return (a.distance || 0) - (b.distance || 0);
   });
 
-  const sortedTurfs = [...turfs].sort((a, b) => {
-    switch (sortBy) {
-      case "price_asc": return a.price_per_hour - b.price_per_hour;
-      case "price_desc": return b.price_per_hour - a.price_per_hour;
-      case "rating": return (b.rating || 0) - (a.rating || 0);
-      default: return (a.distance || 0) - (b.distance || 0);
-    }
-  });
-
-  const hasActiveFilters = !!(sport || searchQuery);
-
-  const clearFilters = () => {
-    setSport(undefined);
-    setSearchQuery(undefined);
-  };
+  const hasFilters = !!(sport || searchQuery);
 
   return (
-    <div className="min-h-screen pt-16">
-      {/* Sticky header */}
-      <div className="sticky top-16 z-30 bg-[#0a0a1a]/95 backdrop-blur-xl border-b border-white/8 shadow-lg shadow-black/20">
-        <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
-          {/* Title row */}
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-bold text-white">
-                {sport ? `${sport.charAt(0).toUpperCase() + sport.slice(1)} Turfs` : "All Turfs"}
+    <div className="min-h-screen pt-14">
+      {/* Sticky filter bar */}
+      <div className="sticky top-14 z-30 bg-[#0a0a0a] border-b border-white/[0.07]">
+        <div className="max-w-6xl mx-auto px-4 py-3 space-y-3">
+
+          {/* Row 1: title + view toggle */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-base font-semibold text-white truncate">
+                {sport ? `${sport[0].toUpperCase()}${sport.slice(1)} Turfs` : "All Turfs"}
                 {!loading && turfs.length > 0 && (
-                  <span className="text-white/35 text-sm font-normal ml-2">
-                    {turfs.length} found
-                  </span>
+                  <span className="text-white/30 text-sm font-normal ml-2">({turfs.length})</span>
                 )}
               </h1>
             </div>
-
-            {/* View toggle */}
-            <div className="flex items-center bg-white/5 rounded-xl border border-white/10 p-1 shrink-0">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={cn(
-                  "p-1.5 rounded-lg transition-all duration-200",
-                  viewMode === "grid" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
-                )}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("map")}
-                className={cn(
-                  "p-1.5 rounded-lg transition-all duration-200",
-                  viewMode === "map" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
-                )}
-              >
-                <MapIcon className="h-4 w-4" />
-              </button>
+            <div className="flex items-center gap-1 bg-white/[0.04] rounded-lg border border-white/[0.07] p-0.5 shrink-0">
+              {([["grid", LayoutGrid], ["map", Map]] as const).map(([v, Icon]) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={cn(
+                    "p-1.5 rounded-md transition-colors",
+                    view === v ? "bg-white/[0.09] text-white" : "text-white/35 hover:text-white/60"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* Row 2: search */}
           <SearchBar />
 
-          {/* Sport filter */}
+          {/* Row 3: sport filter */}
           <SportFilter selected={sport} onSelect={setSport} />
 
-          {/* Sort + Active filters */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              {hasActiveFilters && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  onClick={clearFilters}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-xs font-medium hover:bg-emerald-500/25 transition-colors"
+          {/* Row 4: sort + clear */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              {hasFilters && (
+                <button
+                  onClick={() => { setSport(undefined); setSearchQuery(undefined); }}
+                  className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors border border-white/[0.07] rounded-lg px-2.5 py-1.5 hover:border-white/[0.14]"
                 >
-                  <X className="h-3 w-3" />
-                  Clear filters
-                </motion.button>
+                  <X className="h-3 w-3" /> Clear
+                </button>
               )}
             </div>
-
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-44 h-9 text-xs shrink-0">
-                <SlidersHorizontal className="h-3.5 w-3.5 mr-1 text-white/40" />
-                <SelectValue placeholder="Sort by" />
+            <Select value={sort} onValueChange={setSort}>
+              <SelectTrigger className="w-40 h-8 text-xs">
+                <SlidersHorizontal className="h-3 w-3 mr-1.5 text-white/30" />
+                <SelectValue placeholder="Sort" />
               </SelectTrigger>
               <SelectContent>
-                {SORT_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
+                <SelectItem value="distance">Nearest first</SelectItem>
+                <SelectItem value="rating">Highest rated</SelectItem>
+                <SelectItem value="price_asc">Price: low–high</SelectItem>
+                <SelectItem value="price_desc">Price: high–low</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -142,66 +111,38 @@ function TurfsContent() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <AnimatePresence mode="wait">
-          {viewMode === "map" ? (
-            <motion.div
-              key="map"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <TurfMap
-                turfs={sortedTurfs}
-                center={latitude && longitude ? [latitude, longitude] : [12.9716, 77.5946]}
-                className="h-[450px] mb-8"
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {loading ? (
-                  <TurfGridSkeleton />
-                ) : (
-                  sortedTurfs.map((turf, i) => (
-                    <TurfCard key={turf.id} turf={turf} index={i} />
-                  ))
-                )}
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {view === "map" ? (
+          <>
+            <TurfMap
+              turfs={sorted}
+              center={latitude && longitude ? [latitude, longitude] : [12.9716, 77.5946]}
+              className="h-[420px] mb-6"
+            />
+            {loading ? <TurfGridSkeleton /> : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sorted.map((t, i) => <TurfCard key={t.id} turf={t} index={i} />)}
               </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="grid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {loading ? (
-                <TurfGridSkeleton />
-              ) : sortedTurfs.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-32"
-                >
-                  <div className="text-7xl mb-5">🏟️</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">No turfs found</h3>
-                  <p className="text-white/40 text-sm max-w-xs mx-auto">
-                    Try adjusting your filters or search in a different area
-                  </p>
-                  {hasActiveFilters && (
-                    <Button variant="outline" className="mt-6" onClick={clearFilters}>
-                      Clear all filters
-                    </Button>
-                  )}
-                </motion.div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {sortedTurfs.map((turf, i) => (
-                    <TurfCard key={turf.id} turf={turf} index={i} />
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
+          </>
+        ) : loading ? (
+          <TurfGridSkeleton />
+        ) : sorted.length === 0 ? (
+          <div className="py-28 text-center">
+            <p className="text-4xl mb-4">🏟️</p>
+            <p className="font-medium text-white/60 mb-1">No turfs found</p>
+            <p className="text-sm text-white/30 mb-6">Try adjusting your search or filters</p>
+            {hasFilters && (
+              <Button variant="outline" size="sm" onClick={() => { setSport(undefined); setSearchQuery(undefined); }}>
+                Clear filters
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sorted.map((t, i) => <TurfCard key={t.id} turf={t} index={i} />)}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -210,11 +151,9 @@ function TurfsContent() {
 export default function TurfsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen pt-16">
-        <div className="sticky top-16 z-30 bg-[#0a0a1a]/95 backdrop-blur-xl border-b border-white/8 h-40" />
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <TurfGridSkeleton />
-        </div>
+      <div className="min-h-screen pt-14">
+        <div className="sticky top-14 z-30 bg-[#0a0a0a] border-b border-white/[0.07] h-36" />
+        <div className="max-w-6xl mx-auto px-4 py-6"><TurfGridSkeleton /></div>
       </div>
     }>
       <TurfsContent />
