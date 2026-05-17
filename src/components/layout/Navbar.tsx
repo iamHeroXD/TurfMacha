@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, LogOut, User, LayoutDashboard, ChevronDown } from "lucide-react";
@@ -69,12 +70,8 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <motion.div
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.94 }}
-              className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.35)]"
-            >
-              <span className="text-black font-bold text-xs leading-none">T</span>
+            <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }} className="shrink-0">
+              <Image src="/logoofturfmacha.png" alt="TurfMacha" width={32} height={32} className="rounded-lg" priority />
             </motion.div>
             <span className="font-semibold text-white text-sm tracking-tight">TurfMacha</span>
           </Link>
@@ -118,7 +115,7 @@ export function Navbar() {
                 >
                   <Avatar className="h-6 w-6">
                     <AvatarImage src={user.avatar_url} />
-                    <AvatarFallback className="text-[10px] bg-emerald-500/15 text-emerald-400">
+                    <AvatarFallback className="text-[10px] bg-brand-400/15 text-brand-400">
                       {getInitials(user.full_name)}
                     </AvatarFallback>
                   </Avatar>
@@ -147,7 +144,7 @@ export function Navbar() {
                       <div className="p-3 border-b border-white/[0.06]">
                         <p className="text-sm font-medium text-white truncate">{user.full_name}</p>
                         <p className="text-xs text-white/40 truncate mt-0.5">{user.email}</p>
-                        <span className="mt-2 inline-block text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 capitalize font-medium">
+                        <span className="mt-2 inline-block text-[10px] px-1.5 py-0.5 rounded bg-brand-400/10 text-brand-400 border border-brand-400/20 capitalize font-medium">
                           {user.role}
                         </span>
                       </div>

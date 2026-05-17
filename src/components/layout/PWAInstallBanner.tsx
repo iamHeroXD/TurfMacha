@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -51,7 +51,7 @@ export function PWAInstallBanner() {
           className="fixed bottom-24 md:bottom-6 left-4 right-4 z-[60] max-w-sm mx-auto"
         >
           <div className="bg-[#161616] border border-white/[0.1] rounded-2xl p-4 flex items-center gap-3 shadow-2xl">
-            <div className="w-11 h-11 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(16,185,129,0.35)]">
+            <div className="w-11 h-11 rounded-xl bg-brand-400 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(101,228,42,0.35)]">
               <span className="text-black font-bold text-base">T</span>
             </div>
             <div className="flex-1 min-w-0">

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
@@ -14,7 +14,7 @@ const buttonVariants = cva(
     /* press */
     "active:scale-[0.96]",
     /* keyboard focus */
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0a0a0a]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0a0a0a]",
     /* disabled */
     "disabled:pointer-events-none disabled:opacity-40",
   ].join(" "),
@@ -22,7 +22,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-emerald-500 text-black font-semibold hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.25)]",
+          "bg-brand-400 text-black font-semibold hover:bg-brand-400 hover:shadow-[0_0_20px_rgba(101,228,42,0.25)]",
         destructive:
           "bg-transparent text-red-400 border border-red-500/20 hover:bg-red-500/[0.08] hover:border-red-500/30",
         outline:
@@ -32,7 +32,7 @@ const buttonVariants = cva(
         ghost:
           "text-white/55 hover:text-white hover:bg-white/[0.06]",
         link:
-          "text-emerald-400 underline-offset-4 hover:underline p-0 h-auto",
+          "text-brand-400 underline-offset-4 hover:underline p-0 h-auto",
         glass:
           "bg-white/[0.04] border border-white/[0.07] text-white hover:bg-white/[0.08] hover:border-white/[0.12]",
       },

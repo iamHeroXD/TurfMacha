@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, MapPin, Clock } from "lucide-react";
+import { Star, MapPin, Clock, Coins } from "lucide-react";
 import { Turf } from "@/types";
 import { formatPrice, formatDistance, SPORTS_CONFIG } from "@/lib/utils";
 
@@ -48,10 +48,15 @@ export function TurfCard({ turf, index = 0 }: TurfCardProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
 
             {/* Sport badge */}
-            <div className="absolute top-2.5 left-2.5">
+            <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-black/55 text-white/90 border border-white/[0.09] backdrop-blur-[2px]">
                 {primary.emoji} {primary.label}
               </span>
+              {turf.is_featured && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/80 text-black backdrop-blur-[2px]">
+                  ★ Featured
+                </span>
+              )}
             </div>
 
             {/* Price */}
@@ -66,7 +71,7 @@ export function TurfCard({ turf, index = 0 }: TurfCardProps) {
           {/* Info */}
           <div className="p-4">
             <div className="flex items-start justify-between gap-2 mb-1.5">
-              <h3 className="font-semibold text-white text-sm leading-snug group-hover:text-emerald-400 transition-colors duration-150 line-clamp-1">
+              <h3 className="font-semibold text-white text-sm leading-snug group-hover:text-brand-400 transition-colors duration-150 line-clamp-1">
                 {turf.name}
               </h3>
               <div className="flex items-center gap-1 shrink-0 text-xs">
@@ -93,18 +98,25 @@ export function TurfCard({ turf, index = 0 }: TurfCardProps) {
               )}
             </div>
 
-            {turf.sports.length > 1 && (
-              <div className="flex gap-1 mt-3 flex-wrap">
-                {turf.sports.slice(1, 3).map((s) => (
-                  <span
-                    key={s}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] text-white/45 border border-white/[0.05]"
-                  >
-                    {SPORTS_CONFIG[s].emoji} {SPORTS_CONFIG[s].label}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex items-center justify-between mt-3 flex-wrap gap-1">
+              {turf.sports.length > 1 && (
+                <div className="flex gap-1 flex-wrap">
+                  {turf.sports.slice(1, 3).map((s) => (
+                    <span
+                      key={s}
+                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] text-white/45 border border-white/[0.05]"
+                    >
+                      {SPORTS_CONFIG[s].emoji} {SPORTS_CONFIG[s].label}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {turf.rewards_enabled && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-brand-400/10 text-brand-400 border border-brand-400/20">
+                  <Coins className="h-2.5 w-2.5" /> +{turf.coins_per_booking} coins
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </Link>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Turf, Booking } from "@/types";
 import { formatPrice, getInitials } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, subDays, eachDayOfInterval } from "date-fns";
 
 export default function OwnerDashboard() {
   const { user } = useAuthStore();
@@ -25,6 +25,7 @@ export default function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [revenue, setRevenue] = useState(0);
   const [monthRevenue, setMonthRevenue] = useState(0);
+  const [chartData, setChartData] = useState<{ day: string; revenue: number }[]>([]);
 
   useEffect(() => {
     if (!user) { router.push("/login"); return; }
@@ -36,7 +37,9 @@ export default function OwnerDashboard() {
       const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
       const monthEnd = format(endOfMonth(now), "yyyy-MM-dd");
 
-      const [turfsRes, bookingsRes, monthRes] = await Promise.all([
+      const weekStart = format(subDays(now, 6), "yyyy-MM-dd");
+
+      const [turfsRes, bookingsRes, monthRes, weekRes] = await Promise.all([
         sb.from("turfs").select("*").eq("owner_id", user.id).order("created_at", { ascending: false }),
         sb.from("bookings")
           .select("*, turf:turfs!inner(*), user:users(*)")
@@ -49,6 +52,12 @@ export default function OwnerDashboard() {
           .eq("status", "confirmed")
           .gte("slot_date", monthStart)
           .lte("slot_date", monthEnd),
+        sb.from("bookings")
+          .select("slot_date, total_price, turfs!inner(owner_id)")
+          .eq("turfs.owner_id", user.id)
+          .eq("status", "confirmed")
+          .gte("slot_date", weekStart)
+          .lte("slot_date", format(now, "yyyy-MM-dd")),
       ]);
 
       const turfList = (turfsRes.data as Turf[]) || [];
@@ -62,6 +71,18 @@ export default function OwnerDashboard() {
       setMonthRevenue(
         (monthRes.data || []).reduce((s: number, b: { total_price: number }) => s + b.total_price, 0)
       );
+
+      // Build 7-day chart data
+      const days = eachDayOfInterval({ start: subDays(now, 6), end: now });
+      const revenueByDay: Record<string, number> = {};
+      (weekRes.data || []).forEach((b: { slot_date: string; total_price: number }) => {
+        revenueByDay[b.slot_date] = (revenueByDay[b.slot_date] || 0) + b.total_price;
+      });
+      setChartData(days.map(d => ({
+        day: format(d, "EEE"),
+        revenue: revenueByDay[format(d, "yyyy-MM-dd")] || 0,
+      })));
+
       setLoading(false);
     })();
   }, [user, router]);
@@ -93,14 +114,14 @@ export default function OwnerDashboard() {
         <div className="max-w-5xl mx-auto px-4 py-6 flex items-center gap-4">
           <Avatar className="h-11 w-11 shrink-0 ring-2 ring-white/[0.07]">
             <AvatarImage src={user.avatar_url} />
-            <AvatarFallback className="text-sm bg-emerald-500/10 text-emerald-400 font-medium">
+            <AvatarFallback className="text-sm bg-brand-400/10 text-brand-400 font-medium">
               {getInitials(user.full_name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="font-semibold text-white truncate">{user.full_name}</h1>
-              <span className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+              <span className="text-[11px] px-1.5 py-0.5 rounded bg-brand-400/10 text-brand-400 border border-brand-400/20 shrink-0">
                 Owner
               </span>
             </div>
@@ -132,20 +153,41 @@ export default function OwnerDashboard() {
           ))}
         </motion.div>
 
-        {/* All-time revenue callout */}
-        {!loading && revenue > 0 && (
+        {/* Revenue chart (7-day) */}
+        {!loading && chartData.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18 }}
-            className="flex items-center gap-3 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06]"
+            className="p-4 rounded-xl border border-white/[0.07] bg-[#111111]"
           >
-            <TrendingUp className="h-5 w-5 text-emerald-400 shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-white">
-                {formatPrice(revenue)} <span className="text-white/50 font-normal">total confirmed revenue</span>
-              </p>
-              <p className="text-xs text-white/40 mt-0.5">Based on recent confirmed bookings</p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs font-medium text-white/35 uppercase tracking-wider flex items-center gap-1.5">
+                  <BarChart3 className="h-3.5 w-3.5" /> Revenue — Last 7 Days
+                </p>
+                {revenue > 0 && (
+                  <p className="text-xs text-white/40 mt-0.5">{formatPrice(revenue)} total (recent)</p>
+                )}
+              </div>
+              <p className="text-lg font-bold text-brand-400">{formatPrice(monthRevenue)}<span className="text-xs font-normal text-white/35 ml-1">this month</span></p>
+            </div>
+            <div className="flex items-end gap-1.5 h-20">
+              {(() => {
+                const max = Math.max(...chartData.map(d => d.revenue), 1);
+                return chartData.map((d, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    <motion.div
+                      initial={{ scaleY: 0 }}
+                      animate={{ scaleY: 1 }}
+                      transition={{ delay: 0.2 + i * 0.06, duration: 0.4 }}
+                      style={{ height: `${Math.max((d.revenue / max) * 100, 4)}%`, originY: 1 }}
+                      className={`w-full rounded-t-sm ${d.revenue > 0 ? "bg-brand-400/70 hover:bg-brand-400 transition-colors" : "bg-white/[0.06]"}`}
+                    />
+                    <span className="text-[9px] text-white/30">{d.day}</span>
+                  </div>
+                ));
+              })()}
             </div>
           </motion.div>
         )}
@@ -254,7 +296,7 @@ export default function OwnerDashboard() {
                     </p>
                   </div>
                   <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                    <p className="text-sm font-semibold text-emerald-400">{formatPrice(b.total_price)}</p>
+                    <p className="text-sm font-semibold text-brand-400">{formatPrice(b.total_price)}</p>
                     <Badge
                       variant={b.status === "confirmed" ? "success" : b.status === "cancelled" ? "destructive" : "warning"}
                       className="text-[10px]"
@@ -277,7 +319,7 @@ export default function OwnerDashboard() {
         >
           <Link href="/dashboard/owner/turfs/new">
             <div className="p-4 rounded-xl border border-white/[0.07] bg-[#111111] hover:border-white/[0.14] hover:bg-[#161616] transition-colors flex items-center gap-3 group cursor-pointer">
-              <Plus className="h-4 w-4 text-emerald-400" />
+              <Plus className="h-4 w-4 text-brand-400" />
               <div>
                 <p className="text-sm font-medium text-white">Add Turf</p>
                 <p className="text-xs text-white/35">List a new venue</p>

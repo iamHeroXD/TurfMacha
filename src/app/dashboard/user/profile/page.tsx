@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -47,7 +47,7 @@ export default function ProfilePage() {
       <div className="max-w-md mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-            <User className="h-6 w-6 text-emerald-400" />
+            <User className="h-6 w-6 text-brand-400" />
             My Profile
           </h1>
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useToast } from "@/hooks/useToast";
 import { X } from "lucide-react";
@@ -20,7 +20,7 @@ export function Toaster() {
               flex items-start gap-3 p-4 rounded-2xl border backdrop-blur-xl shadow-2xl
               ${toast.variant === "destructive"
                 ? "bg-red-500/10 border-red-500/30 text-red-300"
-                : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                : "bg-brand-400/10 border-brand-400/30 text-brand-300"
               }
             `}
           >

@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Heart, User, LayoutDashboard } from "lucide-react";
+import { Home, Search, Coins, User, LayoutDashboard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { cn } from "@/lib/utils";
@@ -11,15 +11,18 @@ export function BottomNav() {
   const pathname = usePathname();
   const { user } = useAuthStore();
 
-  if (pathname.startsWith("/login") || pathname.startsWith("/signup")) return null;
+  if (pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/admin")) return null;
 
   const links = [
-    { href: "/",                 icon: Home,           label: "Home"      },
-    { href: "/turfs",            icon: Search,         label: "Explore"   },
-    { href: "/dashboard/user/favorites", icon: Heart,  label: "Saved"     },
-    { href: user?.role === "owner" ? "/dashboard/owner" : "/dashboard/user",
-                                 icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/dashboard/user/profile", icon: User,     label: "Profile"   },
+    { href: "/",           icon: Home,           label: "Home"      },
+    { href: "/turfs",      icon: Search,         label: "Explore"   },
+    ...(user?.role === "user" ? [{ href: "/dashboard/user/wallet", icon: Coins, label: "Wallet" }] : []),
+    {
+      href: user?.role === "owner" ? "/dashboard/owner" : "/dashboard/user",
+      icon: LayoutDashboard,
+      label: "Dashboard",
+    },
+    { href: "/dashboard/user/profile", icon: User, label: "Profile" },
   ];
 
   return (
@@ -42,7 +45,7 @@ export function BottomNav() {
                 {active && (
                   <motion.span
                     layoutId="bottom-tab"
-                    className="absolute inset-0 rounded-xl bg-emerald-500/[0.12]"
+                    className="absolute inset-0 rounded-xl bg-brand-400/[0.12]"
                     transition={{ type: "spring", stiffness: 500, damping: 38 }}
                   />
                 )}
@@ -54,14 +57,14 @@ export function BottomNav() {
                   <Icon
                     className={cn(
                       "h-[19px] w-[19px] transition-colors duration-150",
-                      active ? "text-emerald-400" : "text-white/30 group-hover:text-white/55"
+                      active ? "text-brand-400" : "text-white/30 group-hover:text-white/55"
                     )}
                     strokeWidth={active ? 2.4 : 1.8}
                   />
                 </motion.span>
                 <span className={cn(
                   "text-[10px] font-medium relative z-10 transition-colors duration-150",
-                  active ? "text-emerald-400" : "text-white/30"
+                  active ? "text-brand-400" : "text-white/30"
                 )}>
                   {label}
                 </span>

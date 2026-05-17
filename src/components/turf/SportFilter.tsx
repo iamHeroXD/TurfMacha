@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Sport } from "@/types";
 import { SPORTS_CONFIG } from "@/lib/utils";
@@ -32,7 +32,7 @@ export function SportFilter({ selected, onSelect }: SportFilterProps) {
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 border transition-colors duration-150",
             selected === sport
-              ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
+              ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
               : "bg-transparent border-white/[0.07] text-white/50 hover:text-white hover:border-white/[0.12]"
           )}
         >

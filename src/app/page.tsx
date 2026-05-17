@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -77,7 +77,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="text-xs font-semibold text-emerald-400 uppercase tracking-[0.15em] mb-5"
+            className="text-xs font-semibold text-brand-400 uppercase tracking-[0.15em] mb-5"
           >
             Sports Turf Booking
           </motion.p>
@@ -198,8 +198,8 @@ export default function HomePage() {
             {STEPS.map((s, i) => (
               <motion.div key={s.n} {...fadeUp(i * 0.09)}>
                 <div className="p-5 rounded-xl border border-white/[0.07] bg-[#111111] hover:border-white/[0.13] transition-colors duration-200">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
-                    <span className="text-emerald-400 font-bold text-sm">{s.n}</span>
+                  <div className="w-8 h-8 rounded-lg bg-brand-400/10 border border-brand-400/20 flex items-center justify-center mb-4">
+                    <span className="text-brand-400 font-bold text-sm">{s.n}</span>
                   </div>
                   <h3 className="font-semibold text-white mb-1.5">{s.title}</h3>
                   <p className="text-sm text-white/45 leading-relaxed">{s.desc}</p>
@@ -220,7 +220,7 @@ export default function HomePage() {
               <motion.div {...fadeUp()} className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-emerald-400" /> Nearby Turfs
+                    <MapPin className="h-4 w-4 text-brand-400" /> Nearby Turfs
                   </h2>
                   <p className="text-sm text-white/40 mt-0.5">Closest to your location</p>
                 </div>
@@ -285,7 +285,7 @@ export default function HomePage() {
             {FEATURES.map(({ icon: Icon, title, desc }) => (
               <motion.div key={title} variants={stagger.item}>
                 <div className="p-5 rounded-xl border border-white/[0.07] bg-[#111111] h-full hover:border-white/[0.13] transition-colors duration-200">
-                  <Icon className="h-4 w-4 text-emerald-400 mb-3" />
+                  <Icon className="h-4 w-4 text-brand-400 mb-3" />
                   <h3 className="font-semibold text-white text-sm mb-1.5">{title}</h3>
                   <p className="text-xs text-white/40 leading-relaxed">{desc}</p>
                 </div>

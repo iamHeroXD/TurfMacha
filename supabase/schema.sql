@@ -380,3 +380,146 @@ CREATE POLICY "Users can manage their favorites"
 --   ARRAY['https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=800'],
 --   '06:00', '23:00', TRUE, 4.5, 12
 -- );
+
+-- ============================================================
+-- PHASE 2 ADDITIONS: TurfCoins, Rewards, Admin
+-- ============================================================
+
+-- ── New columns on existing tables ──────────────────────────
+ALTER TABLE public.turfs ADD COLUMN IF NOT EXISTS rewards_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE public.turfs ADD COLUMN IF NOT EXISTS coins_per_booking INTEGER NOT NULL DEFAULT 10;
+ALTER TABLE public.turfs ADD COLUMN IF NOT EXISTS redemption_cost INTEGER NOT NULL DEFAULT 100;
+ALTER TABLE public.turfs ADD COLUMN IF NOT EXISTS is_featured BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- ── TurfCoins balance per user ───────────────────────────────
+CREATE TABLE IF NOT EXISTS public.turf_coins (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE UNIQUE,
+    balance INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0),
+    total_earned INTEGER NOT NULL DEFAULT 0,
+    total_redeemed INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ── Coin transaction audit log ───────────────────────────────
+CREATE TABLE IF NOT EXISTS public.coin_transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    amount INTEGER NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('earn', 'redeem', 'admin_adjust', 'expire')),
+    description TEXT,
+    booking_id UUID REFERENCES public.bookings(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ── Reward redemption records ────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.reward_redemptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    turf_id UUID NOT NULL REFERENCES public.turfs(id) ON DELETE CASCADE,
+    booking_id UUID REFERENCES public.bookings(id) ON DELETE SET NULL,
+    coins_used INTEGER NOT NULL CHECK (coins_used > 0),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ── Indexes ──────────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_coin_transactions_user ON public.coin_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_turf_coins_user ON public.turf_coins(user_id);
+CREATE INDEX IF NOT EXISTS idx_reward_redemptions_user ON public.reward_redemptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_turfs_featured ON public.turfs(is_featured) WHERE is_featured = TRUE;
+
+-- ── Coin-earning trigger ─────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.award_booking_coins()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_catalog
+AS $$
+DECLARE
+    v_coins INTEGER;
+    v_enabled BOOLEAN;
+BEGIN
+    SELECT coins_per_booking, rewards_enabled
+    INTO v_coins, v_enabled
+    FROM public.turfs WHERE id = NEW.turf_id;
+
+    IF v_enabled AND v_coins > 0 THEN
+        INSERT INTO public.turf_coins (user_id, balance, total_earned)
+        VALUES (NEW.user_id, v_coins, v_coins)
+        ON CONFLICT (user_id) DO UPDATE SET
+            balance       = public.turf_coins.balance + v_coins,
+            total_earned  = public.turf_coins.total_earned + v_coins,
+            updated_at    = NOW();
+
+        INSERT INTO public.coin_transactions (user_id, amount, type, description, booking_id)
+        VALUES (NEW.user_id, v_coins, 'earn', 'Coins earned from booking', NEW.id);
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.award_booking_coins() FROM PUBLIC;
+
+DROP TRIGGER IF EXISTS bookings_award_coins ON public.bookings;
+CREATE TRIGGER bookings_award_coins
+    AFTER INSERT ON public.bookings
+    FOR EACH ROW
+    WHEN (NEW.status = 'confirmed')
+    EXECUTE FUNCTION public.award_booking_coins();
+
+-- ── RLS for new tables ───────────────────────────────────────
+ALTER TABLE public.turf_coins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coin_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reward_redemptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users view own coins" ON public.turf_coins;
+CREATE POLICY "Users view own coins"
+    ON public.turf_coins FOR SELECT
+    USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users view own transactions" ON public.coin_transactions;
+CREATE POLICY "Users view own transactions"
+    ON public.coin_transactions FOR SELECT
+    USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users manage own redemptions" ON public.reward_redemptions;
+CREATE POLICY "Users manage own redemptions"
+    ON public.reward_redemptions FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- ── Admin-extended policies ──────────────────────────────────
+
+-- Bookings: extend for admin visibility
+DROP POLICY IF EXISTS "Users and owners can view relevant bookings" ON public.bookings;
+CREATE POLICY "Users and owners can view relevant bookings"
+    ON public.bookings FOR SELECT
+    USING (
+        auth.uid() = user_id
+        OR EXISTS (SELECT 1 FROM public.turfs WHERE id = bookings.turf_id AND owner_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+    );
+
+DROP POLICY IF EXISTS "Admins can manage all bookings" ON public.bookings;
+CREATE POLICY "Admins can manage all bookings"
+    ON public.bookings FOR UPDATE
+    USING (EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'));
+
+DROP POLICY IF EXISTS "Admins can manage all turfs" ON public.turfs;
+CREATE POLICY "Admins can manage all turfs"
+    ON public.turfs FOR ALL
+    USING (EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'))
+    WITH CHECK (EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'));
+
+DROP POLICY IF EXISTS "Admins can update any profile" ON public.users;
+CREATE POLICY "Admins can update any profile"
+    ON public.users FOR UPDATE
+    USING (EXISTS (SELECT 1 FROM public.users u WHERE u.id = auth.uid() AND u.role = 'admin'));
+
+DROP POLICY IF EXISTS "Admins can delete any user" ON public.users;
+CREATE POLICY "Admins can delete any user"
+    ON public.users FOR DELETE
+    USING (EXISTS (SELECT 1 FROM public.users u WHERE u.id = auth.uid() AND u.role = 'admin'));

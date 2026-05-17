@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED_ROUTES = ["/dashboard"];
-const AUTH_ROUTES = ["/login", "/signup"];
+const PROTECTED_ROUTES = ["/dashboard", "/admin"];
+const AUTH_ROUTES = ["/login", "/signup", "/forgot-password", "/reset-password"];
+const PUBLIC_PASSTHROUGH = ["/auth/callback"];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -33,6 +34,11 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
+
+  // Let OAuth callback through without any redirect logic
+  if (PUBLIC_PASSTHROUGH.some((route) => pathname.startsWith(route))) {
+    return supabaseResponse;
+  }
 
   // Redirect unauthenticated users from protected routes
   if (!user && PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {

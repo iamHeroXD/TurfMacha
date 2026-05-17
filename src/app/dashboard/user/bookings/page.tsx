@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -44,7 +44,7 @@ export default function BookingsPage() {
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-emerald-400" />
+            <Calendar className="h-6 w-6 text-brand-400" />
             My Bookings
           </h1>
 

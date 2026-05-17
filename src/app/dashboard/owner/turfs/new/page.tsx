@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -126,7 +126,7 @@ export default function NewTurfPage() {
                   {...register("description")}
                   placeholder="Describe your turf, facilities, and what makes it special..."
                   rows={3}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-400/50 resize-none"
                 />
                 {errors.description && <p className="text-xs text-red-400">{errors.description.message}</p>}
               </div>
@@ -231,7 +231,7 @@ export default function NewTurfPage() {
                     onClick={() => toggleAmenity(amenity)}
                     className={`p-2.5 rounded-xl border text-xs font-medium transition-all text-left ${
                       selectedAmenities.includes(amenity)
-                        ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
+                        ? "bg-brand-400/20 border-brand-400/40 text-brand-400"
                         : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10"
                     }`}
                   >

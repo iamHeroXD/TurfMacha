@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
@@ -27,7 +27,7 @@ export function SearchBar({ className, placeholder = "Search turfs, cities…" }
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-11 pl-10 pr-9 rounded-lg border border-white/[0.09] bg-white/[0.04] text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/40 transition-colors"
+        className="w-full h-11 pl-10 pr-9 rounded-lg border border-white/[0.09] bg-white/[0.04] text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-brand-400/50 focus:border-brand-400/40 transition-colors"
       />
       {value && (
         <button

@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -13,7 +13,7 @@
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 98%;
-    --primary: 152 69% 38%;
+    --primary: 100 76% 52%;
     --primary-foreground: 0 0% 4%;
     --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
@@ -25,7 +25,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 11%;
     --input: 0 0% 11%;
-    --ring: 152 69% 38%;
+    --ring: 100 76% 52%;
     --radius: 0.5rem;
 
     /* Animation durations */
@@ -70,11 +70,11 @@
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
   /* Selection */
-  ::selection { background: rgba(16,185,129,0.22); color: #fff; }
+  ::selection { background: rgba(101,228,42,0.22); color: #fff; }
 
   /* Focus-visible ring */
   :focus-visible {
-    outline: 2px solid rgba(16,185,129,0.6);
+    outline: 2px solid rgba(101,228,42,0.6);
     outline-offset: 2px;
     border-radius: 6px;
   }
@@ -196,7 +196,7 @@
 
   /* Tags / Badges */
   .tag       { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-white/[0.06]  text-white/60 border border-white/[0.06]; }
-  .tag-green { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20; }
+  .tag-green { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-brand-400/10 text-brand-400 border border-brand-400/20; }
   .tag-red   { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-500/10    text-red-400    border border-red-500/20; }
   .tag-amber { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-500/10  text-amber-400  border border-amber-500/20; }
 
@@ -214,13 +214,13 @@
   .glass        { @apply bg-[#111111] border border-white/[0.07]; }
   .glass-card   { @apply card; }
   .glass-strong { @apply bg-[#161616] border border-white/[0.1]; }
-  .gradient-text{ @apply text-emerald-400; }
+  .gradient-text{ @apply text-brand-400; }
 
   /* Input (44px touch target) */
   .input {
     @apply h-11 w-full rounded-lg border border-white/[0.09] bg-white/[0.04] px-4 text-sm text-white
            placeholder:text-white/30
-           focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/40;
+           focus:outline-none focus:ring-1 focus:ring-brand-400/50 focus:border-brand-400/40;
     transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   }
 

@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Clock, CheckCircle, ChevronLeft } from "lucide-react";
+import { Calendar, Clock, CheckCircle, ChevronLeft, Coins } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -72,14 +72,14 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                   <div key={label} className="flex items-center gap-2 flex-1 min-w-0">
                     <div className={cn(
                       "w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 border",
-                      step > n ? "bg-emerald-500 text-black border-emerald-500"
-                        : step === n ? "border-emerald-500/50 text-emerald-400 bg-emerald-500/10"
+                      step > n ? "bg-brand-400 text-black border-brand-400"
+                        : step === n ? "border-brand-400/50 text-brand-400 bg-brand-400/10"
                         : "border-white/[0.09] text-white/30"
                     )}>
                       {step > n ? "✓" : n}
                     </div>
                     <span className={cn("text-xs truncate", step === n ? "text-white" : "text-white/30")}>{label}</span>
-                    {i < 1 && <div className={cn("h-px flex-1 mx-1", step > 1 ? "bg-emerald-500/30" : "bg-white/[0.07]")} />}
+                    {i < 1 && <div className={cn("h-px flex-1 mx-1", step > 1 ? "bg-brand-400/30" : "bg-white/[0.07]")} />}
                   </div>
                 );
               })}
@@ -101,7 +101,7 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                       {turf.sports.map((s) => (
                         <button key={s} onClick={() => setSport(s)}
                           className={cn("px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors",
-                            sport === s ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400" : "border-white/[0.09] text-white/50 hover:text-white hover:border-white/[0.15]"
+                            sport === s ? "bg-brand-400/10 border-brand-400/25 text-brand-400" : "border-white/[0.09] text-white/50 hover:text-white hover:border-white/[0.15]"
                           )}>
                           {SPORTS_CONFIG[s].emoji} {SPORTS_CONFIG[s].label}
                         </button>
@@ -120,7 +120,7 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                       return (
                         <button key={d.toISOString()} onClick={() => onDateSelect(d)}
                           className={cn("flex flex-col items-center px-3 py-2.5 rounded-lg border text-xs shrink-0 transition-colors",
-                            sel ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400" : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
+                            sel ? "bg-brand-400/10 border-brand-400/25 text-brand-400" : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
                           )}>
                           <span className="text-[9px] uppercase font-semibold tracking-wider">{format(d, "EEE")}</span>
                           <span className="text-lg font-bold leading-none mt-0.5">{format(d, "d")}</span>
@@ -141,7 +141,7 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                         <button key={s} onClick={() => !isB && setTime(s)} disabled={isB}
                           className={cn("py-2 rounded-lg border text-xs font-medium transition-colors",
                             isB ? "border-white/[0.04] text-white/20 line-through cursor-not-allowed"
-                              : isSel ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
+                              : isSel ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
                               : "border-white/[0.09] text-white/60 hover:border-white/[0.15] hover:text-white"
                           )}>
                           {isB ? "—" : formatTime(s)}
@@ -158,7 +158,7 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                     {[1, 2, 3].map((d) => (
                       <button key={d} onClick={() => setDuration(d)}
                         className={cn("py-2 rounded-lg border text-sm font-medium transition-colors",
-                          duration === d ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400" : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
+                          duration === d ? "bg-brand-400/10 border-brand-400/25 text-brand-400" : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
                         )}>
                         {d}h
                       </button>
@@ -189,9 +189,16 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                   ))}
                   <div className="border-t border-white/[0.07] pt-2.5 flex justify-between">
                     <span className="text-white font-semibold">Total</span>
-                    <span className="text-emerald-400 font-bold text-base">{formatPrice(total)}</span>
+                    <span className="text-brand-400 font-bold text-base">{formatPrice(total)}</span>
                   </div>
                 </div>
+
+                {turf.rewards_enabled && (turf.coins_per_booking ?? 0) > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-400/5 border border-brand-400/15 text-xs">
+                    <Coins className="h-3.5 w-3.5 text-brand-400 shrink-0" />
+                    <span className="text-white/70">You&apos;ll earn <span className="text-brand-400 font-semibold">{turf.coins_per_booking} TurfCoins</span> for this booking</span>
+                  </div>
+                )}
 
                 {error && <p className="text-xs text-red-400 bg-red-500/8 border border-red-500/20 rounded-lg p-3">{error}</p>}
 
@@ -208,8 +215,8 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
 
             {step === 3 && (
               <motion.div key="s3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4 space-y-5">
-                <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
-                  <CheckCircle className="h-8 w-8 text-emerald-400" />
+                <div className="w-16 h-16 rounded-full bg-brand-400/10 border border-brand-400/20 flex items-center justify-center mx-auto">
+                  <CheckCircle className="h-8 w-8 text-brand-400" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-white">Booking confirmed!</h3>
@@ -217,7 +224,13 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                 </div>
                 <div className="rounded-xl border border-white/[0.07] p-4 text-sm space-y-2">
                   <div className="flex justify-between"><span className="text-white/40">Turf</span><span className="text-white">{turf.name}</span></div>
-                  <div className="flex justify-between"><span className="text-white/40">Paid</span><span className="text-emerald-400 font-bold">{formatPrice(total)}</span></div>
+                  <div className="flex justify-between"><span className="text-white/40">Paid</span><span className="text-brand-400 font-bold">{formatPrice(total)}</span></div>
+                  {turf.rewards_enabled && (turf.coins_per_booking ?? 0) > 0 && (
+                    <div className="flex justify-between border-t border-white/[0.07] pt-2">
+                      <span className="text-white/40 flex items-center gap-1"><Coins className="h-3 w-3" /> Earned</span>
+                      <span className="text-brand-400 font-bold">+{turf.coins_per_booking} TurfCoins</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" className="flex-1" onClick={onClose}>Close</Button>

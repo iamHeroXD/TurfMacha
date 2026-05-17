@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -65,7 +65,7 @@ export default function UserDashboard() {
         <div className="max-w-3xl mx-auto px-4 py-6 flex items-center gap-4">
           <Avatar className="h-11 w-11 shrink-0 ring-2 ring-white/[0.07]">
             <AvatarImage src={user.avatar_url} />
-            <AvatarFallback className="text-sm bg-emerald-500/10 text-emerald-400 font-medium">
+            <AvatarFallback className="text-sm bg-brand-400/10 text-brand-400 font-medium">
               {getInitials(user.full_name)}
             </AvatarFallback>
           </Avatar>

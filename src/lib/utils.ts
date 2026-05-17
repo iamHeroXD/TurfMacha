@@ -1,4 +1,4 @@
-import { type ClassValue, clsx } from "clsx";
+﻿import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Sport } from "@/types";
 
@@ -79,7 +79,7 @@ export const SPORTS_CONFIG: Record<
     label: "Football",
     emoji: "⚽",
     color: "emerald",
-    gradient: "from-emerald-500 to-green-600",
+    gradient: "from-brand-400 to-green-600",
   },
   cricket: {
     label: "Cricket",

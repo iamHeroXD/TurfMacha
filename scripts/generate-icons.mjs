@@ -1,29 +1,33 @@
 #!/usr/bin/env node
 /**
  * TurfMacha PWA Icon Generator
- * Reads public/icons/icon.svg and generates PNG icons required by manifest.json.
+ * Uses public/logoofturfmacha.png as source for authentic brand icons.
+ * Falls back to public/icons/icon.svg if PNG not present.
  * Run: node scripts/generate-icons.mjs
  * Requires: sharp (dev dependency)
  */
 
-import { readFileSync, existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const ICONS_DIR = join(ROOT, "public", "icons");
-const SVG_PATH = join(ICONS_DIR, "icon.svg");
+const PNG_SOURCE = join(ROOT, "public", "logoofturfmacha.png");
+const SVG_SOURCE = join(ICONS_DIR, "icon.svg");
 
 const SIZES = [192, 512];
 
 async function main() {
-  if (!existsSync(SVG_PATH)) {
-    console.error("❌ SVG not found:", SVG_PATH);
+  // Pick source: prefer the real brand PNG, fall back to SVG
+  const source = existsSync(PNG_SOURCE) ? PNG_SOURCE : SVG_SOURCE;
+  if (!existsSync(source)) {
+    console.error("❌ No icon source found at:", source);
     process.exit(1);
   }
+  console.log("📷 Icon source:", source);
 
-  // Dynamically import sharp so the script fails gracefully if not installed
   let sharp;
   try {
     sharp = (await import("sharp")).default;
@@ -40,11 +44,9 @@ async function main() {
     mkdirSync(ICONS_DIR, { recursive: true });
   }
 
-  const svgBuffer = readFileSync(SVG_PATH);
-
   for (const size of SIZES) {
     const outPath = join(ICONS_DIR, `icon-${size}x${size}.png`);
-    await sharp(svgBuffer).resize(size, size).png().toFile(outPath);
+    await sharp(source).resize(size, size, { fit: "contain", background: { r: 10, g: 10, b: 10, alpha: 1 } }).png().toFile(outPath);
     console.log(`✅ Generated ${size}x${size} → ${outPath}`);
   }
 

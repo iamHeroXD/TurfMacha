@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -47,7 +47,7 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1">
           <Link href={`/turfs/${booking.turf_id}`}>
-            <h3 className="font-medium text-white text-sm hover:text-emerald-400 transition-colors line-clamp-1">
+            <h3 className="font-medium text-white text-sm hover:text-brand-400 transition-colors line-clamp-1">
               {booking.turf?.name}
             </h3>
           </Link>
@@ -67,7 +67,7 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
         </div>
 
         <div className="flex items-center justify-between mt-2">
-          <span className="text-sm font-semibold text-emerald-400">{formatPrice(booking.total_price)}</span>
+          <span className="text-sm font-semibold text-brand-400">{formatPrice(booking.total_price)}</span>
           {booking.status === "pending" && (
             <Button variant="destructive" size="sm" onClick={handleCancel} loading={cancelling} className="text-xs h-7 px-2.5">
               Cancel

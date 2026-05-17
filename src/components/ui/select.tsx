@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
@@ -18,7 +18,7 @@ const SelectTrigger = React.forwardRef<
     className={cn(
       "flex h-9 items-center justify-between gap-2 rounded-lg border border-white/[0.09]",
       "bg-white/[0.04] px-3 py-1.5 text-sm text-white/70",
-      "focus:outline-none focus:ring-1 focus:ring-emerald-500/40",
+      "focus:outline-none focus:ring-1 focus:ring-brand-400/40",
       "disabled:cursor-not-allowed disabled:opacity-40",
       "transition-colors hover:border-white/15 hover:text-white [&>span]:line-clamp-1",
       className
@@ -126,7 +126,7 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-3.5 w-3.5 text-emerald-400" />
+        <Check className="h-3.5 w-3.5 text-brand-400" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

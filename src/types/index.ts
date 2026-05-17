@@ -17,6 +17,7 @@ export interface User {
   avatar_url?: string;
   phone?: string;
   role: UserRole;
+  is_suspended?: boolean;
   created_at: string;
 }
 
@@ -47,6 +48,10 @@ export interface Turf {
   operating_hours_start: string;
   operating_hours_end: string;
   is_active: boolean;
+  is_featured?: boolean;
+  rewards_enabled?: boolean;
+  coins_per_booking?: number;
+  redemption_cost?: number;
   rating: number;
   total_reviews: number;
   created_at: string;
@@ -98,6 +103,37 @@ export interface Favorite {
   turf_id: string;
   created_at: string;
   turf?: Turf;
+}
+
+export interface TurfCoins {
+  id: string;
+  user_id: string;
+  balance: number;
+  total_earned: number;
+  total_redeemed: number;
+  updated_at: string;
+}
+
+export type CoinTransactionType = "earn" | "redeem" | "admin_adjust" | "expire";
+
+export interface CoinTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  type: CoinTransactionType;
+  description?: string;
+  booking_id?: string;
+  created_at: string;
+}
+
+export interface RewardRedemption {
+  id: string;
+  user_id: string;
+  turf_id: string;
+  booking_id?: string;
+  coins_used: number;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
 }
 
 export interface FilterState {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -49,7 +49,7 @@ export default function OwnerBookingsPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-white flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-emerald-400" />
+            <Calendar className="h-6 w-6 text-brand-400" />
             All Bookings
           </motion.h1>
 
@@ -107,7 +107,7 @@ export default function OwnerBookingsPage() {
                 </div>
 
                 <div className="text-right shrink-0">
-                  <p className="font-bold text-emerald-400 text-sm">{formatPrice(booking.total_price)}</p>
+                  <p className="font-bold text-brand-400 text-sm">{formatPrice(booking.total_price)}</p>
                   <Badge
                     variant={
                       booking.status === "confirmed" ? "success"
