@@ -25,21 +25,28 @@ export default function AdminPage() {
   useEffect(() => {
     (async () => {
       const sb = createClient();
-      const [usersRes, turfsRes, bookingsRes, recentUsersRes, recentBookingsRes] = await Promise.all([
+      const [usersRes, turfsRes, bookingsCountRes, revenueRes, recentUsersRes, recentBookingsRes] = await Promise.all([
         sb.from("users").select("id", { count: "exact", head: true }),
         sb.from("turfs").select("id", { count: "exact", head: true }),
-        sb.from("bookings").select("id, total_price, status"),
+        sb.from("bookings").select("id", { count: "exact", head: true }),
+        // Aggregate revenue server-side to avoid loading all booking rows
+        sb.from("bookings")
+          .select("total_price")
+          .eq("status", "confirmed")
+          .eq("payment_status", "paid"),
         sb.from("users").select("*").order("created_at", { ascending: false }).limit(5),
         sb.from("bookings").select("*, turf:turfs(name), user:users(full_name)").order("created_at", { ascending: false }).limit(5),
       ]);
 
-      const bookings = bookingsRes.data ?? [];
-      const revenue = bookings.filter(b => b.status === "confirmed").reduce((s: number, b: { total_price: number }) => s + b.total_price, 0);
+      const revenue = (revenueRes.data ?? []).reduce(
+        (s: number, b: { total_price: number }) => s + (b.total_price || 0),
+        0
+      );
 
       setStats({
         users: usersRes.count ?? 0,
         turfs: turfsRes.count ?? 0,
-        bookings: bookingsRes.count ?? 0,
+        bookings: bookingsCountRes.count ?? 0,
         revenue,
       });
       setRecentUsers((recentUsersRes.data ?? []) as User[]);

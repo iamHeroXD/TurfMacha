@@ -36,3 +36,14 @@ next-env.d.ts
 
 # Claude Code local settings
 .claude/
+
+# next-pwa generated files (regenerated on every build)
+/public/sw.js
+/public/workbox-*.js
+/public/fallback-*.js
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

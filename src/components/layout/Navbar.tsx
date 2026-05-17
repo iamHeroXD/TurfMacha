@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, LogOut, User, LayoutDashboard, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationCenter } from "@/components/layout/NotificationCenter";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
 import { getInitials, cn } from "@/lib/utils";
@@ -62,7 +64,7 @@ export function Navbar() {
         className={cn(
           "fixed top-0 inset-x-0 z-50 h-14 border-b transition-colors duration-300",
           scrolled
-            ? "bg-[#0a0a0a]/97 border-white/[0.07] supports-[backdrop-filter]:backdrop-blur-md"
+            ? "bg-[#0a0a0a]/97 border-white/[0.07] supports-[backdrop-filter]:backdrop-blur-md dark:bg-[#0a0a0a]/97 light:bg-white/95 light:border-black/[0.08]"
             : "bg-transparent border-transparent"
         )}
       >
@@ -105,7 +107,9 @@ export function Navbar() {
           </nav>
 
           {/* Auth / right side */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <ThemeToggle />
+            {user && <NotificationCenter />}
             {user ? (
               <div className="relative">
                 <motion.button

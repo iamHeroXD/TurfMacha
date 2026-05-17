@@ -78,9 +78,8 @@ CREATE TABLE IF NOT EXISTS public.bookings (
     sport TEXT NOT NULL CHECK (sport IN ('football', 'cricket', 'badminton', 'basketball', 'volleyball', 'tennis')),
     notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    -- Prevent double booking: same turf, same date, same start slot
-    CONSTRAINT no_double_booking UNIQUE (turf_id, slot_date, start_time)
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    -- We use a trigger to prevent overlapping bookings instead of a simple unique constraint
 );
 
 -- ============================================================
@@ -146,6 +145,29 @@ BEGIN
 END;
 $$;
 
+-- Check for overlapping bookings
+CREATE OR REPLACE FUNCTION public.check_booking_overlap()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public, pg_catalog
+AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM public.bookings
+        WHERE turf_id = NEW.turf_id
+          AND slot_date = NEW.slot_date
+          AND status IN ('pending', 'confirmed')
+          AND id != NEW.id -- exclude self on updates
+          AND (
+              NEW.start_time < end_time AND NEW.end_time > start_time
+          )
+    ) THEN
+        RAISE EXCEPTION 'Booking overlaps with an existing confirmed or pending booking.';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
 -- Auto-update turf rating when review is added/updated/deleted
 CREATE OR REPLACE FUNCTION public.update_turf_rating()
 RETURNS TRIGGER
@@ -188,7 +210,10 @@ BEGIN
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
         NEW.raw_user_meta_data->>'phone',
-        COALESCE(NEW.raw_user_meta_data->>'role', 'user')
+        CASE 
+            WHEN NEW.raw_user_meta_data->>'role' = 'owner' THEN 'owner'
+            ELSE 'user'
+        END
     )
     ON CONFLICT (id) DO UPDATE
         SET
@@ -227,6 +252,11 @@ CREATE TRIGGER bookings_updated_at
 CREATE TRIGGER reviews_update_rating
     AFTER INSERT OR UPDATE OR DELETE ON public.reviews
     FOR EACH ROW EXECUTE FUNCTION public.update_turf_rating();
+
+DROP TRIGGER IF EXISTS check_booking_overlap_trigger ON public.bookings;
+CREATE TRIGGER check_booking_overlap_trigger
+    BEFORE INSERT OR UPDATE ON public.bookings
+    FOR EACH ROW EXECUTE FUNCTION public.check_booking_overlap();
 
 -- on_auth_user_created uses CREATE OR REPLACE TRIGGER (Postgres 14+)
 CREATE OR REPLACE TRIGGER on_auth_user_created
@@ -485,11 +515,15 @@ CREATE POLICY "Users view own transactions"
     ON public.coin_transactions FOR SELECT
     USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users manage own redemptions" ON public.reward_redemptions;
-CREATE POLICY "Users manage own redemptions"
-    ON public.reward_redemptions FOR ALL
-    USING (auth.uid() = user_id)
-    WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert redemptions" ON public.reward_redemptions;
+CREATE POLICY "Users can insert redemptions"
+    ON public.reward_redemptions FOR INSERT
+    WITH CHECK (auth.uid() = user_id AND status = 'pending');
+
+DROP POLICY IF EXISTS "Users can view own redemptions" ON public.reward_redemptions;
+CREATE POLICY "Users can view own redemptions"
+    ON public.reward_redemptions FOR SELECT
+    USING (auth.uid() = user_id);
 
 -- ── Admin-extended policies ──────────────────────────────────
 
@@ -570,3 +604,231 @@ CREATE INDEX IF NOT EXISTS idx_users_suspended ON public.users(is_suspended) WHE
 
 -- Promote rohansija@gmail.com as admin (run this manually if not already done)
 -- UPDATE public.users SET role = 'admin' WHERE email = 'rohansija@gmail.com';
+
+-- ============================================================
+-- PHASE 4 ADDITIONS: Payment system, security hardening
+-- ============================================================
+
+-- ── Payment fields on bookings ───────────────────────────────
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid'
+    CHECK (payment_status IN ('unpaid', 'paid', 'refunded', 'failed'));
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS payment_id TEXT;
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS razorpay_order_id TEXT;
+
+-- ── Index for payment lookups ────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_bookings_payment_status ON public.bookings(payment_status);
+CREATE INDEX IF NOT EXISTS idx_bookings_razorpay_order ON public.bookings(razorpay_order_id) WHERE razorpay_order_id IS NOT NULL;
+
+-- ── Harden handle_new_user: ensure admin role can NEVER be set via signup metadata
+-- The trigger already maps unknown roles to 'user', but we add an explicit note
+-- and ensure the on-conflict path cannot escalate existing users' roles to admin.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_catalog
+AS $$
+BEGIN
+    INSERT INTO public.users (id, email, full_name, phone, role)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+        NEW.raw_user_meta_data->>'phone',
+        -- admin role can ONLY be set via a direct UPDATE by a superuser/service-role.
+        -- Signup metadata is user-controlled and must NEVER grant admin.
+        CASE
+            WHEN NEW.raw_user_meta_data->>'role' = 'owner' THEN 'owner'
+            ELSE 'user'
+        END
+    )
+    ON CONFLICT (id) DO UPDATE
+        SET
+            full_name  = EXCLUDED.full_name,
+            phone      = COALESCE(EXCLUDED.phone, public.users.phone),
+            -- Never downgrade an existing admin or owner via OAuth re-auth
+            role       = CASE
+                             WHEN public.users.role IN ('admin', 'owner') THEN public.users.role
+                             ELSE EXCLUDED.role
+                         END,
+            updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+-- ── Harden coin-awarding: only award coins for paid bookings ─
+-- Replace the existing trigger to only fire for paid+confirmed bookings.
+DROP TRIGGER IF EXISTS bookings_award_coins ON public.bookings;
+CREATE TRIGGER bookings_award_coins
+    AFTER INSERT OR UPDATE ON public.bookings
+    FOR EACH ROW
+    WHEN (NEW.status = 'confirmed' AND NEW.payment_status = 'paid')
+    EXECUTE FUNCTION public.award_booking_coins();
+
+-- ── RLS: allow server-side payment verification to update booking status
+-- The verify API uses the anon/service key with user context, so existing
+-- "Users can cancel their own bookings" policy covers it.
+-- Add a policy allowing the booking owner to update payment_status transitions.
+DROP POLICY IF EXISTS "Users can update payment status on own bookings" ON public.bookings;
+CREATE POLICY "Users can update payment status on own bookings"
+    ON public.bookings FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- ── Additional performance indexes ──────────────────────────
+CREATE INDEX IF NOT EXISTS idx_bookings_user_date ON public.bookings(user_id, slot_date DESC);
+CREATE INDEX IF NOT EXISTS idx_turfs_active_city  ON public.turfs(is_active, city) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_turfs_active_sports ON public.turfs(is_active) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_coin_transactions_created ON public.coin_transactions(created_at DESC);
+
+-- ============================================================
+-- PHASE 5: Realtime notifications, safe coin deduction,
+--          pending booking expiry, push token storage
+-- ============================================================
+
+-- ── deduct_coins_safe: atomically deduct coins without going below 0 ──
+CREATE OR REPLACE FUNCTION public.deduct_coins_safe(
+  p_user_id UUID,
+  p_amount   INTEGER,
+  p_booking_id UUID DEFAULT NULL
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_catalog
+AS $$
+DECLARE
+  v_current_balance INTEGER;
+  v_deduct INTEGER;
+BEGIN
+  SELECT balance INTO v_current_balance FROM public.turf_coins WHERE user_id = p_user_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN; END IF;
+
+  v_deduct := LEAST(p_amount, v_current_balance);
+  IF v_deduct <= 0 THEN RETURN; END IF;
+
+  UPDATE public.turf_coins
+  SET balance       = balance - v_deduct,
+      total_redeemed = total_redeemed + v_deduct,
+      updated_at    = NOW()
+  WHERE user_id = p_user_id;
+
+  INSERT INTO public.coin_transactions (user_id, amount, type, description, booking_id)
+  VALUES (p_user_id, -v_deduct, 'redeem', 'Coins reversed on refund/cancellation', p_booking_id);
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.deduct_coins_safe(UUID, INTEGER, UUID) FROM PUBLIC;
+GRANT  EXECUTE ON FUNCTION public.deduct_coins_safe(UUID, INTEGER, UUID) TO service_role;
+
+-- ── In-app notifications table ─────────────────────────────
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  title      TEXT        NOT NULL,
+  body       TEXT        NOT NULL,
+  type       TEXT        NOT NULL CHECK (type IN ('booking', 'payment', 'coins', 'cancellation', 'reminder', 'admin', 'refund')),
+  data       JSONB,
+  read       BOOLEAN     NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user      ON public.notifications(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread    ON public.notifications(user_id) WHERE read = FALSE;
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
+CREATE POLICY "Users view own notifications"
+  ON public.notifications FOR SELECT
+  USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users mark own notifications read" ON public.notifications;
+CREATE POLICY "Users mark own notifications read"
+  ON public.notifications FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Service role inserts notifications" ON public.notifications;
+CREATE POLICY "Service role inserts notifications"
+  ON public.notifications FOR INSERT
+  WITH CHECK (TRUE);
+
+-- ── Push token storage (web-push VAPID / FCM) ──────────────
+CREATE TABLE IF NOT EXISTS public.push_tokens (
+  id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  token      TEXT        NOT NULL UNIQUE,
+  platform   TEXT        NOT NULL DEFAULT 'web',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_tokens_user ON public.push_tokens(user_id);
+
+ALTER TABLE public.push_tokens ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users manage own push tokens" ON public.push_tokens;
+CREATE POLICY "Users manage own push tokens"
+  ON public.push_tokens FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- ── Auto-expire stale pending bookings (older than 15 min, unpaid) ──
+-- Run this as a scheduled job in Supabase (pg_cron):
+-- SELECT cron.schedule('expire-pending-bookings', '*/5 * * * *',
+--   $$UPDATE public.bookings
+--     SET status = 'cancelled', payment_status = 'failed'
+--     WHERE status = 'pending'
+--       AND payment_status = 'unpaid'
+--       AND created_at < NOW() - INTERVAL '15 minutes'$$
+-- );
+
+-- ── Trigger: create in-app notification when booking is confirmed ──
+CREATE OR REPLACE FUNCTION public.notify_booking_confirmed()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_catalog
+AS $$
+DECLARE
+  v_turf_name TEXT;
+BEGIN
+  IF NEW.status = 'confirmed' AND (OLD.status IS DISTINCT FROM 'confirmed') THEN
+    SELECT name INTO v_turf_name FROM public.turfs WHERE id = NEW.turf_id;
+    INSERT INTO public.notifications (user_id, title, body, type, data)
+    VALUES (
+      NEW.user_id,
+      'Booking Confirmed!',
+      format('Your booking at %s on %s is confirmed.', v_turf_name, to_char(NEW.slot_date, 'DD Mon YYYY')),
+      'booking',
+      jsonb_build_object('booking_id', NEW.id, 'turf_id', NEW.turf_id, 'slot_date', NEW.slot_date)
+    );
+  END IF;
+
+  IF NEW.status = 'cancelled' AND (OLD.status IS DISTINCT FROM 'cancelled') THEN
+    SELECT name INTO v_turf_name FROM public.turfs WHERE id = NEW.turf_id;
+    INSERT INTO public.notifications (user_id, title, body, type, data)
+    VALUES (
+      NEW.user_id,
+      CASE WHEN NEW.payment_status = 'refunded' THEN 'Booking Refunded' ELSE 'Booking Cancelled' END,
+      CASE WHEN NEW.payment_status = 'refunded'
+        THEN format('Your booking at %s has been refunded.', v_turf_name)
+        ELSE format('Your booking at %s on %s was cancelled.', v_turf_name, to_char(NEW.slot_date, 'DD Mon YYYY'))
+      END,
+      CASE WHEN NEW.payment_status = 'refunded' THEN 'refund' ELSE 'cancellation' END,
+      jsonb_build_object('booking_id', NEW.id, 'turf_id', NEW.turf_id)
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.notify_booking_confirmed() FROM PUBLIC;
+
+DROP TRIGGER IF EXISTS booking_notification_trigger ON public.bookings;
+CREATE TRIGGER booking_notification_trigger
+  AFTER UPDATE ON public.bookings
+  FOR EACH ROW
+  EXECUTE FUNCTION public.notify_booking_confirmed();

@@ -9,6 +9,7 @@ export type Sport =
 export type UserRole = "user" | "owner" | "admin";
 
 export type BookingStatus = "pending" | "confirmed" | "cancelled";
+export type PaymentStatus = "unpaid" | "paid" | "refunded" | "failed";
 
 export interface User {
   id: string;
@@ -79,6 +80,9 @@ export interface Booking {
   duration_hours: number;
   total_price: number;
   status: BookingStatus;
+  payment_status?: PaymentStatus;
+  payment_id?: string;
+  razorpay_order_id?: string;
   sport: Sport;
   notes?: string;
   created_at: string;

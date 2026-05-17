@@ -1,23 +1,72 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, Clock, CheckCircle, ChevronLeft, Coins } from "lucide-react";
+import { Calendar, Clock, CheckCircle, ChevronLeft, Coins, CreditCard } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Turf, Sport } from "@/types";
-import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/useAuthStore";
 import { formatPrice, formatTime, generateTimeSlots, SPORTS_CONFIG } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/useToast";
 
-interface BookingModalProps { turf: Turf; open: boolean; onClose: () => void; }
+// Razorpay types
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill?: { name?: string; email?: string; contact?: string };
+  theme?: { color?: string };
+  handler: (response: RazorpayPaymentResponse) => void;
+  modal?: { ondismiss?: () => void };
+}
+interface RazorpayInstance {
+  open: () => void;
+}
+interface RazorpayPaymentResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+interface BookingModalProps {
+  turf: Turf;
+  open: boolean;
+  onClose: () => void;
+}
+
+const RAZORPAY_ENABLED =
+  typeof process !== "undefined" &&
+  !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+async function loadRazorpayScript(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  if (window.Razorpay) return true;
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+}
 
 export function BookingModal({ turf, open, onClose }: BookingModalProps) {
   const { user } = useAuthStore();
   const router = useRouter();
+
   const [step, setStep] = useState(1);
   const [date, setDate] = useState<Date>(new Date());
   const [time, setTime] = useState("");
@@ -26,59 +75,253 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
   const [loading, setLoading] = useState(false);
   const [booked, setBooked] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const realtimeChannelRef = useRef<any>(null);
 
-  const slots = generateTimeSlots(turf.operating_hours_start || "06:00", turf.operating_hours_end || "22:00");
+  const slots = generateTimeSlots(
+    turf.operating_hours_start || "06:00",
+    turf.operating_hours_end || "22:00"
+  );
   const total = turf.price_per_hour * duration;
   const dates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
 
-  const fetchBooked = async (d: Date) => {
+  // Reset all state when modal opens and pre-fetch today's booked slots
+  useEffect(() => {
+    if (!open) return;
+    const today = new Date();
+    setStep(1);
+    setDate(today);
+    setTime("");
+    setDuration(1);
+    setSport(turf.sports[0]);
+    setError("");
+    setBookingId(null);
+    fetchBooked(today);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, turf.id]);
+
+  // Realtime subscription: refresh booked slots whenever another user books this turf+date
+  useEffect(() => {
+    if (!open) {
+      // Clean up channel on close
+      if (realtimeChannelRef.current) {
+        import("@/lib/supabase/client").then(({ createClient }) => {
+          createClient().removeChannel(realtimeChannelRef.current);
+          realtimeChannelRef.current = null;
+        });
+      }
+      return;
+    }
+
+    import("@/lib/supabase/client").then(({ createClient }) => {
+      const supabase = createClient();
+      const channelName = `bookings-${turf.id}`;
+
+      // Remove previous channel if exists
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
+      }
+
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "bookings",
+            filter: `turf_id=eq.${turf.id}`,
+          },
+          () => {
+            // Re-fetch whenever any booking for this turf changes
+            fetchBooked(date);
+          }
+        )
+        .subscribe();
+
+      realtimeChannelRef.current = channel;
+    });
+  // date and fetchBooked are stable within an open session; re-subscribing on date change is fine
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, turf.id, date]);
+
+  const fetchBooked = useCallback(async (d: Date) => {
+    const { createClient } = await import("@/lib/supabase/client");
     const { data, error } = await createClient()
       .from("bookings")
       .select("start_time")
       .eq("turf_id", turf.id)
       .eq("slot_date", format(d, "yyyy-MM-dd"))
       .neq("status", "cancelled");
-    // On error, show all slots as potentially booked to prevent accidental double-booking
+
     if (error) {
       console.error("fetchBooked error:", error);
-      setBooked([]); // don't block all slots, but log the issue
+      setBooked([]);
       return;
     }
     setBooked(data?.map((b) => b.start_time) || []);
+  }, [turf.id]);
+
+  const onDateSelect = (d: Date) => {
+    setDate(d);
+    setTime("");
+    fetchBooked(d);
   };
 
-  const onDateSelect = (d: Date) => { setDate(d); setTime(""); fetchBooked(d); };
+  // Calculate end time — guard against midnight rollover
+  const getEndTime = (startTime: string, durationHours: number): string | null => {
+    const [h, m] = startTime.split(":").map(Number);
+    const endTotalMinutes = h * 60 + m + durationHours * 60;
+    const endHour = Math.floor(endTotalMinutes / 60);
+    const endMin = endTotalMinutes % 60;
+    if (endHour >= 24) return null; // crosses midnight
+    return `${String(endHour).padStart(2, "0")}:${String(endMin).padStart(2, "0")}`;
+  };
 
-  const handleBook = async () => {
-    if (!user) { router.push("/login"); return; }
-    setLoading(true); setError("");
+  const handlePayAndBook = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    const endTime = getEndTime(time, duration);
+    if (!endTime) {
+      setError("Booking would extend past midnight. Please choose an earlier time slot.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const [h, m] = time.split(":").map(Number);
-      const endHour = h + duration;
-
-      // Guard against bookings that would roll past midnight
-      if (endHour >= 24) {
-        setError("Booking would extend past midnight. Please choose an earlier time slot.");
-        return;
+      // If Razorpay is configured, use payment flow
+      if (RAZORPAY_ENABLED) {
+        await handleRazorpayFlow(endTime);
+      } else {
+        // Development / no-payment mode: create pending booking directly
+        await handleDirectBooking(endTime);
       }
+    } catch {
+      setError("Booking failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      const end = `${String(endHour).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-      const { error: err } = await createClient().from("bookings").insert({
-        user_id: user.id, turf_id: turf.id, slot_date: format(date, "yyyy-MM-dd"),
-        start_time: time, end_time: end, duration_hours: duration,
-        total_price: total, status: "confirmed", sport,
-      });
-      if (err) {
-        setError(
-          err.message.includes("unique") || err.message.includes("no_double_booking")
-            ? "This slot was just booked by someone else — please pick another time."
-            : err.message
-        );
-        return;
-      }
-      setStep(3);
-    } catch { setError("Booking failed. Try again."); }
-    finally { setLoading(false); }
+  const handleDirectBooking = async (endTime: string) => {
+    const { createClient } = await import("@/lib/supabase/client");
+    const { data, error: err } = await createClient()
+      .from("bookings")
+      .insert({
+        user_id: user!.id,
+        turf_id: turf.id,
+        slot_date: format(date, "yyyy-MM-dd"),
+        start_time: time,
+        end_time: endTime,
+        duration_hours: duration,
+        total_price: total,
+        status: "confirmed",
+        payment_status: "unpaid",
+        sport,
+      })
+      .select("id")
+      .single();
+
+    if (err) {
+      setError(
+        err.message.includes("overlap") || err.message.includes("unique")
+          ? "This slot was just booked by someone else — please pick another time."
+          : err.message
+      );
+      return;
+    }
+    setBookingId(data?.id ?? null);
+    setStep(3);
+  };
+
+  const handleRazorpayFlow = async (endTime: string) => {
+    // Step 1: Create order on backend
+    const orderRes = await fetch("/api/payments/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        turfId: turf.id,
+        slotDate: format(date, "yyyy-MM-dd"),
+        startTime: time,
+        endTime,
+        durationHours: duration,
+        totalPrice: total,
+        sport,
+      }),
+    });
+
+    const orderData = await orderRes.json();
+    if (!orderRes.ok) {
+      setError(orderData.error || "Failed to create payment order. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    // Step 2: Load Razorpay SDK
+    const loaded = await loadRazorpayScript();
+    if (!loaded) {
+      setError("Payment gateway failed to load. Please try again or use a different network.");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false); // Stop spinner — Razorpay checkout takes over
+
+    // Step 3: Open Razorpay checkout
+    const options: RazorpayOptions = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+      amount: orderData.amount,
+      currency: "INR",
+      name: "TurfMacha",
+      description: `${turf.name} — ${format(date, "d MMM")} ${formatTime(time)}`,
+      order_id: orderData.razorpayOrderId,
+      prefill: {
+        name: user?.full_name,
+        email: user?.email,
+      },
+      theme: { color: "#65e42a" },
+      handler: async (paymentResponse: RazorpayPaymentResponse) => {
+        setLoading(true);
+        try {
+          const verifyRes = await fetch("/api/payments/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              bookingId: orderData.bookingId,
+              razorpayOrderId: paymentResponse.razorpay_order_id,
+              razorpayPaymentId: paymentResponse.razorpay_payment_id,
+              razorpaySignature: paymentResponse.razorpay_signature,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+          if (!verifyRes.ok) {
+            setError(verifyData.error || "Payment verification failed. Contact support.");
+            return;
+          }
+          setBookingId(orderData.bookingId);
+          setStep(3);
+        } catch {
+          setError("Payment verified but booking confirmation failed. Contact support.");
+        } finally {
+          setLoading(false);
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          setError("Payment was cancelled. Your slot has been reserved for 10 minutes.");
+        },
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
 
   return (
@@ -87,7 +330,9 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
         {/* Header */}
         <div className="px-5 pt-5 pb-4 border-b border-white/[0.07]">
           <DialogHeader>
-            <DialogTitle>{step === 3 ? "Booking Confirmed" : `Book — ${turf.name}`}</DialogTitle>
+            <DialogTitle>
+              {step === 3 ? "Booking Confirmed" : `Book — ${turf.name}`}
+            </DialogTitle>
           </DialogHeader>
           {step < 3 && (
             <div className="flex items-center gap-2 mt-3">
@@ -95,16 +340,34 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                 const n = i + 1;
                 return (
                   <div key={label} className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 border",
-                      step > n ? "bg-brand-400 text-black border-brand-400"
-                        : step === n ? "border-brand-400/50 text-brand-400 bg-brand-400/10"
-                        : "border-white/[0.09] text-white/30"
-                    )}>
+                    <div
+                      className={cn(
+                        "w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 border",
+                        step > n
+                          ? "bg-brand-400 text-black border-brand-400"
+                          : step === n
+                          ? "border-brand-400/50 text-brand-400 bg-brand-400/10"
+                          : "border-white/[0.09] text-white/30"
+                      )}
+                    >
                       {step > n ? "✓" : n}
                     </div>
-                    <span className={cn("text-xs truncate", step === n ? "text-white" : "text-white/30")}>{label}</span>
-                    {i < 1 && <div className={cn("h-px flex-1 mx-1", step > 1 ? "bg-brand-400/30" : "bg-white/[0.07]")} />}
+                    <span
+                      className={cn(
+                        "text-xs truncate",
+                        step === n ? "text-white" : "text-white/30"
+                      )}
+                    >
+                      {label}
+                    </span>
+                    {i < 1 && (
+                      <div
+                        className={cn(
+                          "h-px flex-1 mx-1",
+                          step > 1 ? "bg-brand-400/30" : "bg-white/[0.07]"
+                        )}
+                      />
+                    )}
                   </div>
                 );
               })}
@@ -115,19 +378,33 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
         {/* Body */}
         <div className="px-5 py-5 overflow-y-auto max-h-[60vh]">
           <AnimatePresence mode="wait">
-
+            {/* Step 1: Date & Time */}
             {step === 1 && (
-              <motion.div key="s1" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} className="space-y-5">
-                {/* Sport */}
+              <motion.div
+                key="s1"
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -12 }}
+                className="space-y-5"
+              >
+                {/* Sport selector */}
                 {turf.sports.length > 1 && (
                   <div>
-                    <p className="text-xs text-white/40 uppercase tracking-wider mb-2">Sport</p>
+                    <p className="text-xs text-white/40 uppercase tracking-wider mb-2">
+                      Sport
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {turf.sports.map((s) => (
-                        <button key={s} onClick={() => setSport(s)}
-                          className={cn("px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors",
-                            sport === s ? "bg-brand-400/10 border-brand-400/25 text-brand-400" : "border-white/[0.09] text-white/50 hover:text-white hover:border-white/[0.15]"
-                          )}>
+                        <button
+                          key={s}
+                          onClick={() => setSport(s)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors",
+                            sport === s
+                              ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
+                              : "border-white/[0.09] text-white/50 hover:text-white hover:border-white/[0.15]"
+                          )}
+                        >
                           {SPORTS_CONFIG[s].emoji} {SPORTS_CONFIG[s].label}
                         </button>
                       ))}
@@ -135,131 +412,258 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                   </div>
                 )}
 
-                {/* Date */}
+                {/* Date selector */}
                 <div>
-                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5"><Calendar className="h-3 w-3" /> Date</p>
+                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Calendar className="h-3 w-3" /> Date
+                  </p>
                   <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
                     {dates.map((d) => {
-                      const sel = format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
-                      const today = format(d, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+                      const sel =
+                        format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
+                      const today =
+                        format(d, "yyyy-MM-dd") ===
+                        format(new Date(), "yyyy-MM-dd");
                       return (
-                        <button key={d.toISOString()} onClick={() => onDateSelect(d)}
-                          className={cn("flex flex-col items-center px-3 py-2.5 rounded-lg border text-xs shrink-0 transition-colors",
-                            sel ? "bg-brand-400/10 border-brand-400/25 text-brand-400" : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
-                          )}>
-                          <span className="text-[9px] uppercase font-semibold tracking-wider">{format(d, "EEE")}</span>
-                          <span className="text-lg font-bold leading-none mt-0.5">{format(d, "d")}</span>
-                          <span className="text-[9px] mt-0.5 opacity-60">{today ? "Today" : format(d, "MMM")}</span>
+                        <button
+                          key={d.toISOString()}
+                          onClick={() => onDateSelect(d)}
+                          className={cn(
+                            "flex flex-col items-center px-3 py-2.5 rounded-lg border text-xs shrink-0 transition-colors",
+                            sel
+                              ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
+                              : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
+                          )}
+                        >
+                          <span className="text-[9px] uppercase font-semibold tracking-wider">
+                            {format(d, "EEE")}
+                          </span>
+                          <span className="text-lg font-bold leading-none mt-0.5">
+                            {format(d, "d")}
+                          </span>
+                          <span className="text-[9px] mt-0.5 opacity-60">
+                            {today ? "Today" : format(d, "MMM")}
+                          </span>
                         </button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Time */}
+                {/* Time selector */}
                 <div>
-                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5"><Clock className="h-3 w-3" /> Time</p>
+                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" /> Time
+                  </p>
                   <div className="grid grid-cols-3 gap-1.5 max-h-36 overflow-y-auto">
                     {slots.map((s) => {
-                      const isB = booked.includes(s), isSel = time === s;
+                      const isB = booked.includes(s);
+                      const isSel = time === s;
+                      const wouldCrossMidnight = !getEndTime(s, duration);
+                      const unavailable = isB || wouldCrossMidnight;
                       return (
-                        <button key={s} onClick={() => !isB && setTime(s)} disabled={isB}
-                          className={cn("py-2 rounded-lg border text-xs font-medium transition-colors",
-                            isB ? "border-white/[0.04] text-white/20 line-through cursor-not-allowed"
-                              : isSel ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
+                        <button
+                          key={s}
+                          onClick={() => !unavailable && setTime(s)}
+                          disabled={unavailable}
+                          className={cn(
+                            "py-2 rounded-lg border text-xs font-medium transition-colors",
+                            unavailable
+                              ? "border-white/[0.04] text-white/20 line-through cursor-not-allowed"
+                              : isSel
+                              ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
                               : "border-white/[0.09] text-white/60 hover:border-white/[0.15] hover:text-white"
-                          )}>
-                          {isB ? "—" : formatTime(s)}
+                          )}
+                        >
+                          {unavailable ? "—" : formatTime(s)}
                         </button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Duration */}
+                {/* Duration selector */}
                 <div>
-                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2">Duration</p>
+                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2">
+                    Duration
+                  </p>
                   <div className="grid grid-cols-3 gap-2">
                     {[1, 2, 3].map((d) => (
-                      <button key={d} onClick={() => setDuration(d)}
-                        className={cn("py-2 rounded-lg border text-sm font-medium transition-colors",
-                          duration === d ? "bg-brand-400/10 border-brand-400/25 text-brand-400" : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
-                        )}>
+                      <button
+                        key={d}
+                        onClick={() => setDuration(d)}
+                        className={cn(
+                          "py-2 rounded-lg border text-sm font-medium transition-colors",
+                          duration === d
+                            ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
+                            : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
+                        )}
+                      >
                         {d}h
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <Button className="w-full" disabled={!time} onClick={() => setStep(2)}>
+                <Button
+                  className="w-full"
+                  disabled={!time}
+                  onClick={() => setStep(2)}
+                >
                   Continue {time && `· ${formatPrice(total)}`}
                 </Button>
               </motion.div>
             )}
 
+            {/* Step 2: Confirm & Pay */}
             {step === 2 && (
-              <motion.div key="s2" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} className="space-y-4">
+              <motion.div
+                key="s2"
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -12 }}
+                className="space-y-4"
+              >
+                {/* Booking summary */}
                 <div className="rounded-xl border border-white/[0.07] bg-[#0e0e0e] p-4 space-y-2.5 text-sm">
-                  {[
-                    ["Turf", turf.name],
-                    ["Sport", `${SPORTS_CONFIG[sport].emoji} ${SPORTS_CONFIG[sport].label}`],
-                    ["Date", format(date, "EEE, d MMM yyyy")],
-                    ["Time", formatTime(time)],
-                    ["Duration", `${duration} hr${duration > 1 ? "s" : ""}`],
-                  ].map(([l, v]) => (
+                  {(
+                    [
+                      ["Turf", turf.name],
+                      [
+                        "Sport",
+                        `${SPORTS_CONFIG[sport].emoji} ${SPORTS_CONFIG[sport].label}`,
+                      ],
+                      ["Date", format(date, "EEE, d MMM yyyy")],
+                      ["Time", formatTime(time)],
+                      [
+                        "Duration",
+                        `${duration} hr${duration > 1 ? "s" : ""}`,
+                      ],
+                    ] as [string, string][]
+                  ).map(([l, v]) => (
                     <div key={l} className="flex justify-between gap-3">
                       <span className="text-white/40">{l}</span>
-                      <span className="text-white font-medium text-right">{v}</span>
+                      <span className="text-white font-medium text-right">
+                        {v}
+                      </span>
                     </div>
                   ))}
                   <div className="border-t border-white/[0.07] pt-2.5 flex justify-between">
                     <span className="text-white font-semibold">Total</span>
-                    <span className="text-brand-400 font-bold text-base">{formatPrice(total)}</span>
+                    <span className="text-brand-400 font-bold text-base">
+                      {formatPrice(total)}
+                    </span>
                   </div>
                 </div>
 
+                {/* TurfCoins preview */}
                 {turf.rewards_enabled && (turf.coins_per_booking ?? 0) > 0 && (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-400/5 border border-brand-400/15 text-xs">
                     <Coins className="h-3.5 w-3.5 text-brand-400 shrink-0" />
-                    <span className="text-white/70">You&apos;ll earn <span className="text-brand-400 font-semibold">{turf.coins_per_booking} TurfCoins</span> for this booking</span>
+                    <span className="text-white/70">
+                      You&apos;ll earn{" "}
+                      <span className="text-brand-400 font-semibold">
+                        {turf.coins_per_booking} TurfCoins
+                      </span>{" "}
+                      for this booking
+                    </span>
                   </div>
                 )}
 
-                {error && <p className="text-xs text-red-400 bg-red-500/8 border border-red-500/20 rounded-lg p-3">{error}</p>}
+                {/* Payment method badge */}
+                {RAZORPAY_ENABLED && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/5 border border-blue-500/15 text-xs">
+                    <CreditCard className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                    <span className="text-white/60">
+                      Pay via UPI, cards, net banking, or wallets
+                    </span>
+                  </div>
+                )}
+
+                {error && (
+                  <p className="text-xs text-red-400 bg-red-500/8 border border-red-500/20 rounded-lg p-3">
+                    {error}
+                  </p>
+                )}
 
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 gap-1" onClick={() => setStep(1)}>
+                  <Button
+                    variant="outline"
+                    className="flex-1 gap-1"
+                    onClick={() => setStep(1)}
+                  >
                     <ChevronLeft className="h-4 w-4" /> Back
                   </Button>
-                  <Button className="flex-1" onClick={handleBook} loading={loading}>
-                    Confirm
+                  <Button
+                    className="flex-1"
+                    onClick={handlePayAndBook}
+                    loading={loading}
+                  >
+                    {RAZORPAY_ENABLED ? "Pay & Confirm" : "Confirm"}
                   </Button>
                 </div>
               </motion.div>
             )}
 
+            {/* Step 3: Success */}
             {step === 3 && (
-              <motion.div key="s3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4 space-y-5">
+              <motion.div
+                key="s3"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-4 space-y-5"
+              >
                 <div className="w-16 h-16 rounded-full bg-brand-400/10 border border-brand-400/20 flex items-center justify-center mx-auto">
                   <CheckCircle className="h-8 w-8 text-brand-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">Booking confirmed!</h3>
-                  <p className="text-sm text-white/50 mt-1">{format(date, "EEE, d MMM")} · {formatTime(time)}</p>
+                  <h3 className="font-semibold text-white">
+                    Booking confirmed!
+                  </h3>
+                  <p className="text-sm text-white/50 mt-1">
+                    {format(date, "EEE, d MMM")} · {formatTime(time)}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-white/[0.07] p-4 text-sm space-y-2">
-                  <div className="flex justify-between"><span className="text-white/40">Turf</span><span className="text-white">{turf.name}</span></div>
-                  <div className="flex justify-between"><span className="text-white/40">Paid</span><span className="text-brand-400 font-bold">{formatPrice(total)}</span></div>
-                  {turf.rewards_enabled && (turf.coins_per_booking ?? 0) > 0 && (
-                    <div className="flex justify-between border-t border-white/[0.07] pt-2">
-                      <span className="text-white/40 flex items-center gap-1"><Coins className="h-3 w-3" /> Earned</span>
-                      <span className="text-brand-400 font-bold">+{turf.coins_per_booking} TurfCoins</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <span className="text-white/40">Turf</span>
+                    <span className="text-white">{turf.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/40">Amount</span>
+                    <span className="text-brand-400 font-bold">
+                      {formatPrice(total)}
+                    </span>
+                  </div>
+                  {turf.rewards_enabled &&
+                    (turf.coins_per_booking ?? 0) > 0 && (
+                      <div className="flex justify-between border-t border-white/[0.07] pt-2">
+                        <span className="text-white/40 flex items-center gap-1">
+                          <Coins className="h-3 w-3" /> Earned
+                        </span>
+                        <span className="text-brand-400 font-bold">
+                          +{turf.coins_per_booking} TurfCoins
+                        </span>
+                      </div>
+                    )}
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={onClose}>Close</Button>
-                  <Button className="flex-1" onClick={() => { onClose(); router.push("/dashboard/user/bookings"); }}>My Bookings</Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={onClose}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => {
+                      onClose();
+                      router.push("/dashboard/user/bookings");
+                    }}
+                  >
+                    My Bookings
+                  </Button>
                 </div>
               </motion.div>
             )}

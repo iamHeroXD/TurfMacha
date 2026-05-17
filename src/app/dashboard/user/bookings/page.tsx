@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
 import { BookingCard } from "@/components/booking/BookingCard";
@@ -19,22 +19,22 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     if (!user) return;
     const supabase = createClient();
     const { data } = await supabase
       .from("bookings")
       .select("*, turf:turfs(*)")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("slot_date", { ascending: false });
     setBookings((data as Booking[]) || []);
     setLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!user) { router.push("/login"); return; }
     fetchBookings();
-  }, [user]);
+  }, [user, router, fetchBookings]);
 
   const upcoming = bookings.filter((b) => b.status !== "cancelled" && new Date(`${b.slot_date} ${b.start_time}`) >= new Date());
   const past = bookings.filter((b) => b.status === "cancelled" || new Date(`${b.slot_date} ${b.start_time}`) < new Date());

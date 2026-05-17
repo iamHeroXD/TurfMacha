@@ -80,13 +80,26 @@ export default function AdminBookingsPage() {
                   {b.turf?.name} · {format(new Date(b.slot_date), "d MMM yyyy")} · {b.start_time}
                 </p>
               </div>
-              <p className="text-sm font-bold text-brand-400 shrink-0">{formatPrice(b.total_price)}</p>
-              <Badge
-                variant={b.status === "confirmed" ? "success" : b.status === "cancelled" ? "destructive" : "warning"}
-                className="text-[10px] shrink-0"
-              >
-                {b.status}
-              </Badge>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <p className="text-sm font-bold text-brand-400">{formatPrice(b.total_price)}</p>
+                <Badge
+                  variant={b.status === "confirmed" ? "success" : b.status === "cancelled" ? "destructive" : "warning"}
+                  className="text-[10px]"
+                >
+                  {b.status}
+                </Badge>
+                {b.payment_status && b.payment_status !== "unpaid" && (
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium border ${
+                    b.payment_status === "paid"
+                      ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                      : b.payment_status === "refunded"
+                      ? "bg-orange-500/10 text-orange-400 border-orange-500/20"
+                      : "bg-red-500/10 text-red-400 border-red-500/20"
+                  }`}>
+                    {b.payment_status}
+                  </span>
+                )}
+              </div>
             </motion.div>
           ))}
         </div>

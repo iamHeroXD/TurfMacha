@@ -30,7 +30,8 @@ export function BottomNav() {
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.15, duration: 0.35 }}
-      className="md:hidden fixed bottom-0 inset-x-0 z-50 safe-bottom"
+      className="md:hidden fixed bottom-0 inset-x-0 z-50"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="bg-[#0e0e0e]/97 border-t border-white/[0.07] supports-[backdrop-filter]:backdrop-blur-md">
         <div className="flex items-center justify-around px-1 h-14 max-w-sm mx-auto">

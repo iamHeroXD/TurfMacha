@@ -1,12 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { AuthProvider } from "@/components/layout/AuthProvider";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstallBanner } from "@/components/layout/PWAInstallBanner";
+import { PWAUpdateBanner } from "@/components/layout/PWAUpdateBanner";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,15 +28,19 @@ export const metadata: Metadata = {
     template: "%s | TurfMacha",
   },
   description:
-    "Discover and book premium sports turfs near you. Football, cricket, badminton, basketball and more. Instant booking, best prices.",
+    "Discover and book premium sports turfs near you. Football, cricket, badminton, basketball and more. Instant booking, best prices in India.",
   keywords: [
     "turf booking",
     "sports turf",
     "football turf",
     "cricket turf",
+    "badminton court",
     "book turf online",
     "TurfMacha",
     "turf booking India",
+    "Kerala turf booking",
+    "turf booking Kerala",
+    "sports booking app",
   ],
   authors: [{ name: "TurfMacha" }],
   creator: "TurfMacha",
@@ -68,11 +76,16 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)",  color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f7fa" },
+  ],
+  colorScheme: "dark light",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -81,30 +94,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`dark ${inter.variable}`} suppressHydrationWarning>
+    // ThemeProvider adds "dark" or "light" class — suppressHydrationWarning prevents
+    // mismatch between server-rendered class and client-resolved theme
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0a0a0a" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
-      <body
-        className={`${inter.className} antialiased bg-[#0a0a0a] text-white min-h-screen`}
-      >
-        <AuthProvider>
-          <Navbar />
-          <PageTransition>
-            <main className="pb-20 md:pb-0">{children}</main>
-          </PageTransition>
-          <BottomNav />
-          <Toaster />
-          <PWAInstallBanner />
-        </AuthProvider>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'))}`,
-          }}
-        />
+      <body className={`${inter.className} antialiased min-h-screen`}>
+        <ThemeProvider>
+          <AuthProvider>
+            <Suspense fallback={null}>
+              <PostHogProvider>
+                <Navbar />
+                <PageTransition>
+                  <main className="pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+                    {children}
+                  </main>
+                </PageTransition>
+                <BottomNav />
+                <Toaster />
+                <PWAInstallBanner />
+                <PWAUpdateBanner />
+              </PostHogProvider>
+            </Suspense>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

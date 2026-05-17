@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -257,7 +257,7 @@ export default function HomePage() {
             </Link>
           </motion.div>
           <motion.div {...fadeUp(0.06)} className="mb-6">
-            <SportFilter selected={sport} onSelect={setSport} />
+            <SportFilter selected={mounted ? sport : undefined} onSelect={setSport} />
           </motion.div>
           {popularLoading ? <TurfGridSkeleton /> : popular.length === 0 ? (
             <motion.div {...fadeUp()} className="py-20 text-center">

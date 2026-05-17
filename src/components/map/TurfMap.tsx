@@ -146,7 +146,12 @@ export function TurfMap({
     // Fit bounds to show all markers
     if (newMarkers.length > 1 && !selectedTurf) {
       const group = L.featureGroup(newMarkers);
-      map.fitBounds(group.getBounds().pad(0.15));
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+          mapInstanceRef.current.fitBounds(group.getBounds().pad(0.15), { animate: false });
+        }
+      }, 50);
     } else if (selectedTurf?.latitude && selectedTurf?.longitude) {
       map.setView([selectedTurf.latitude, selectedTurf.longitude], 15);
     } else if (newMarkers.length === 1) {
