@@ -1,12 +1,13 @@
-"use client";
+﻿"use client";
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, User, Building2, MapPin, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, User, Building2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { createClient } from "@/lib/supabase/client";
 import { signupSchema, SignupInput } from "@/lib/validations/auth";
 import { cn } from "@/lib/utils";
@@ -59,15 +60,15 @@ function SignupContent() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-[#FAF7F0]">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[#F4F1EB]">
         <div className="w-full max-w-sm text-center">
-          <div className="w-14 h-14 rounded-full bg-[#0B3D2E]/10 border-2 border-[#0B3D2E]/20 flex items-center justify-center mx-auto mb-5">
-            <span className="text-[#0B3D2E] text-2xl">✓</span>
+          <div className="w-14 h-14 rounded-full bg-[#0D4D36]/10 border-2 border-[#0D4D36]/20 flex items-center justify-center mx-auto mb-5">
+            <span className="text-[#0D4D36] text-2xl">✓</span>
           </div>
-          <h1 className="font-display font-bold text-2xl text-[#0B3D2E] mb-2">Check your email</h1>
-          <p className="text-sm text-[#6B7280] mb-6 leading-relaxed">
+          <h1 className="font-display font-bold text-2xl text-[#0D4D36] mb-2">Check your email</h1>
+          <p className="text-sm text-[#5F5F5F] mb-6 leading-relaxed">
             We sent a confirmation link to your email. Click it to activate your account, then{" "}
-            <Link href="/login" className="text-[#0B3D2E] font-semibold hover:underline">sign in</Link>.
+            <Link href="/login" className="text-[#0D4D36] font-semibold hover:underline">sign in</Link>.
           </p>
           <Link href="/login">
             <Button variant="outline" className="w-full rounded-xl">Back to sign in</Button>
@@ -78,27 +79,25 @@ function SignupContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#FAF7F0] pt-20">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#F4F1EB] pt-20">
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 mb-8">
-          <div className="w-10 h-10 bg-[#0B3D2E] rounded-xl flex items-center justify-center transform -rotate-6 shadow-md">
-            <MapPin className="w-5 h-5 text-[#A3E635]" />
-          </div>
-          <span className="font-display font-bold text-xl text-[#0B3D2E]">TurfMacha</span>
+          <BrandMark size={40} />
+          <span className="font-display font-bold text-xl text-[#0D4D36]">TurfMacha</span>
         </Link>
 
-        <h1 className="font-display font-bold text-3xl text-[#0B3D2E] mb-1">Create account</h1>
-        <p className="text-sm text-[#6B7280] mb-7">
+        <h1 className="font-display font-bold text-3xl text-[#0D4D36] mb-1">Create account</h1>
+        <p className="text-sm text-[#5F5F5F] mb-7">
           Already have one?{" "}
-          <Link href="/login" className="text-[#0B3D2E] font-semibold hover:underline">Sign in</Link>
+          <Link href="/login" className="text-[#0D4D36] font-semibold hover:underline">Sign in</Link>
         </p>
 
         {/* Google OAuth */}
         <Button
           type="button"
           variant="outline"
-          className="w-full gap-2.5 mb-5 rounded-xl border-gray-200 hover:border-[#0B3D2E]/30"
+          className="w-full gap-2.5 mb-5 rounded-xl border-[#E7E2DA] hover:border-[#0D4D36]/30"
           onClick={handleGoogleSignup}
           loading={googleLoading}
         >
@@ -112,13 +111,13 @@ function SignupContent() {
         </Button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">or</span>
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-[#E7E2DA]" />
+          <span className="text-xs text-[#9E9284] font-medium uppercase tracking-wider">or</span>
+          <div className="flex-1 h-px bg-[#E7E2DA]" />
         </div>
 
         {/* Role toggle */}
-        <div className="flex bg-gray-100 rounded-xl p-1 mb-5">
+        <div className="flex bg-[#F4F1EB] rounded-xl p-1 mb-5">
           {([
             { value: "user",  label: "Player",      Icon: User      },
             { value: "owner", label: "Turf Owner",  Icon: Building2 },
@@ -130,8 +129,8 @@ function SignupContent() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all",
                 role === value
-                  ? "bg-[#0B3D2E] text-white shadow-sm"
-                  : "text-[#6B7280] hover:text-[#1F2937]"
+                  ? "bg-[#0D4D36] text-white shadow-sm"
+                  : "text-[#5F5F5F] hover:text-[#111111]"
               )}
             >
               <Icon className="h-4 w-4" /> {label}
@@ -143,51 +142,51 @@ function SignupContent() {
           <input type="hidden" value={role} {...register("role")} />
 
           <div>
-            <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Full Name</label>
+            <label className="block text-sm font-semibold text-[#111111] mb-1.5">Full Name</label>
             <input
               placeholder="Rahul Sharma"
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow"
+              className="w-full bg-white border border-[#E7E2DA] rounded-xl px-4 py-3.5 text-sm text-[#111111] placeholder:text-[#9E9284] outline-none focus:ring-2 focus:ring-[#A6D96A] focus:border-transparent transition-shadow"
               {...register("full_name")}
             />
             {errors.full_name && <p className="text-xs text-red-500 mt-1">{errors.full_name.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Email</label>
+            <label className="block text-sm font-semibold text-[#111111] mb-1.5">Email</label>
             <input
               type="email"
               placeholder="you@example.com"
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow"
+              className="w-full bg-white border border-[#E7E2DA] rounded-xl px-4 py-3.5 text-sm text-[#111111] placeholder:text-[#9E9284] outline-none focus:ring-2 focus:ring-[#A6D96A] focus:border-transparent transition-shadow"
               {...register("email")}
             />
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">
-              Phone <span className="text-[#9CA3AF] font-normal">(optional)</span>
+            <label className="block text-sm font-semibold text-[#111111] mb-1.5">
+              Phone <span className="text-[#9E9284] font-normal">(optional)</span>
             </label>
             <input
               type="tel"
               placeholder="+91 98765 43210"
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow"
+              className="w-full bg-white border border-[#E7E2DA] rounded-xl px-4 py-3.5 text-sm text-[#111111] placeholder:text-[#9E9284] outline-none focus:ring-2 focus:ring-[#A6D96A] focus:border-transparent transition-shadow"
               {...register("phone")}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Password</label>
+            <label className="block text-sm font-semibold text-[#111111] mb-1.5">Password</label>
             <div className="relative">
               <input
                 type={show ? "text" : "password"}
                 placeholder="Min. 8 characters"
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 pr-11 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow"
+                className="w-full bg-white border border-[#E7E2DA] rounded-xl px-4 py-3.5 pr-11 text-sm text-[#111111] placeholder:text-[#9E9284] outline-none focus:ring-2 focus:ring-[#A6D96A] focus:border-transparent transition-shadow"
                 {...register("password")}
               />
               <button
                 type="button"
                 onClick={() => setShow(!show)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9E9284] hover:text-[#5F5F5F] transition-colors"
               >
                 {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -196,11 +195,11 @@ function SignupContent() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Confirm Password</label>
+            <label className="block text-sm font-semibold text-[#111111] mb-1.5">Confirm Password</label>
             <input
               type="password"
               placeholder="Re-enter password"
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow"
+              className="w-full bg-white border border-[#E7E2DA] rounded-xl px-4 py-3.5 text-sm text-[#111111] placeholder:text-[#9E9284] outline-none focus:ring-2 focus:ring-[#A6D96A] focus:border-transparent transition-shadow"
               {...register("confirm_password")}
             />
             {errors.confirm_password && (
@@ -216,7 +215,7 @@ function SignupContent() {
 
           <Button
             type="submit"
-            className="w-full rounded-xl bg-[#0B3D2E] gap-2 shadow-lg shadow-[#0B3D2E]/20"
+            className="w-full rounded-xl bg-[#0D4D36] gap-2 shadow-lg shadow-[#0D4D36]/20"
             size="lg"
             loading={isSubmitting}
           >
@@ -230,7 +229,7 @@ function SignupContent() {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAF7F0]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F4F1EB]" />}>
       <SignupContent />
     </Suspense>
   );

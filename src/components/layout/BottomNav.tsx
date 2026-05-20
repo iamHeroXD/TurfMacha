@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -39,7 +39,7 @@ export function BottomNav() {
       className="md:hidden fixed bottom-0 inset-x-0 z-50"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
-      <div className="bg-[#FAF7F0]/97 border-t border-[#0B3D2E]/10 supports-[backdrop-filter]:backdrop-blur-md">
+      <div className="bg-[#F4F1EB]/97 border-t border-[#0D4D36]/10 supports-[backdrop-filter]:backdrop-blur-md">
         <div className="flex items-center justify-around px-2 h-14 max-w-sm mx-auto">
           {links.map(({ href, icon: Icon, label }) => {
             const active =
@@ -53,7 +53,7 @@ export function BottomNav() {
                 {active && (
                   <motion.span
                     layoutId="bottom-tab"
-                    className="absolute inset-0 rounded-2xl bg-[#0B3D2E]/8"
+                    className="absolute inset-0 rounded-2xl bg-[#0D4D36]/8"
                     transition={{ type: "spring", stiffness: 500, damping: 38 }}
                   />
                 )}
@@ -61,14 +61,14 @@ export function BottomNav() {
                   <Icon
                     className={cn(
                       "h-[19px] w-[19px] transition-colors duration-150",
-                      active ? "text-[#0B3D2E]" : "text-[#1F2937]/35 group-hover:text-[#1F2937]/55"
+                      active ? "text-[#0D4D36]" : "text-[#111111]/35 group-hover:text-[#111111]/55"
                     )}
                     strokeWidth={active ? 2.4 : 1.8}
                   />
                 </motion.span>
                 <span className={cn(
                   "text-[9.5px] font-bold relative z-10 transition-colors duration-150",
-                  active ? "text-[#0B3D2E]" : "text-[#1F2937]/35"
+                  active ? "text-[#0D4D36]" : "text-[#111111]/35"
                 )}>
                   {label}
                 </span>

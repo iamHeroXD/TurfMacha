@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
@@ -6,7 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, MapPin, ArrowRight, LogIn } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, LogIn } from "lucide-react";
+import { BrandMark } from "@/components/ui/BrandMark";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -58,23 +60,22 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-stretch bg-[#FAF7F0] pt-14">
+    <div className="min-h-screen flex items-stretch bg-[#F4F1EB] pt-14">
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center py-12">
 
         {/* Left panel (desktop) */}
         <div className="hidden lg:block relative h-[600px] rounded-[2.5rem] overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&q=80&w=1200"
             alt="Football turf"
-            className="absolute inset-0 w-full h-full object-cover"
+            fill className="object-cover"
+            sizes="50vw"
+            priority
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#0B3D2E]/92 via-[#0B3D2E]/70 to-[#0B3D2E]/30" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#0D4D36]/92 via-[#0D4D36]/70 to-[#0D4D36]/30" />
           <div className="relative z-10 h-full flex flex-col justify-between p-10 text-white">
             <Link href="/" className="flex items-center gap-2 w-fit">
-              <div className="w-10 h-10 bg-[#A3E635] rounded-xl flex items-center justify-center transform -rotate-6">
-                <MapPin className="w-6 h-6 text-[#0B3D2E]" />
-              </div>
+              <BrandMark size={40} />
               <span className="font-display font-bold text-2xl">TurfMacha</span>
             </Link>
             <div>
@@ -87,8 +88,7 @@ function LoginContent() {
               <div className="flex gap-2 items-center text-sm text-white/60">
                 <div className="flex -space-x-2">
                   {[11,12,13,14].map((i) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img key={i} src={`https://i.pravatar.cc/100?img=${i}`} alt="" className="w-8 h-8 rounded-full border-2 border-[#0B3D2E]" />
+                    <Image key={i} src={`https://i.pravatar.cc/100?img=${i}`} alt="" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-[#0D4D36]" />
                   ))}
                 </div>
                 <span>Joined by 10,000+ players in TVM</span>
@@ -102,10 +102,8 @@ function LoginContent() {
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
             <Link href="/" className="inline-flex items-center gap-2">
-              <div className="w-10 h-10 bg-[#0B3D2E] rounded-xl flex items-center justify-center transform -rotate-6">
-                <MapPin className="w-6 h-6 text-[#A3E635]" />
-              </div>
-              <span className="font-display font-bold text-2xl text-[#0B3D2E]">TurfMacha</span>
+              <BrandMark size={40} />
+              <span className="font-display font-bold text-2xl text-[#0D4D36]">TurfMacha</span>
             </Link>
           </div>
 
@@ -113,7 +111,7 @@ function LoginContent() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.06, duration: 0.28 }}
-            className="text-3xl font-display font-bold text-[#0B3D2E] mb-2"
+            className="text-3xl font-display font-bold text-[#0D4D36] mb-2"
           >
             Sign in
           </motion.h1>
@@ -121,16 +119,16 @@ function LoginContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.28 }}
-            className="text-sm text-[#1F2937]/55 mb-8"
+            className="text-sm text-[#111111]/55 mb-8"
           >
             New here?{" "}
-            <Link href="/signup" className="text-[#0B3D2E] font-semibold hover:underline underline-offset-2">
+            <Link href="/signup" className="text-[#0D4D36] font-semibold hover:underline underline-offset-2">
               Create an account
             </Link>
           </motion.p>
 
           {urlSuccess && (
-            <div className="text-xs text-[#0B3D2E] bg-[#0B3D2E]/8 border border-[#0B3D2E]/20 rounded-xl px-3 py-2.5 mb-4">
+            <div className="text-xs text-[#0D4D36] bg-[#0D4D36]/8 border border-[#0D4D36]/20 rounded-xl px-3 py-2.5 mb-4">
               Password updated! Sign in with your new password.
             </div>
           )}
@@ -140,7 +138,7 @@ function LoginContent() {
             <Button
               type="button"
               variant="outline"
-              className="w-full gap-2.5 rounded-xl border-gray-200 hover:border-[#0B3D2E]/30 hover:bg-[#FAF7F0]"
+              className="w-full gap-2.5 rounded-xl border-[#E7E2DA] hover:border-[#0D4D36]/30 hover:bg-[#F4F1EB]"
               onClick={handleGoogleLogin}
               loading={googleLoading}
             >
@@ -155,57 +153,64 @@ function LoginContent() {
           </motion.div>
 
           <div className="flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">or</span>
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex-1 h-px bg-[#E7E2DA]" />
+            <span className="text-xs text-[#9E9284] font-medium uppercase tracking-wider">or</span>
+            <div className="flex-1 h-px bg-[#E7E2DA]" />
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-[#1F2937]">Email</label>
+              <label htmlFor="login-email" className="block text-sm font-semibold text-[#111111]">Email</label>
               <input
+                id="login-email"
                 type="email"
+                autoComplete="email"
                 placeholder="you@example.com"
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow"
+                className="w-full bg-white border border-[#E7E2DA] rounded-xl px-4 py-3.5 text-sm outline-none focus:ring-2 focus:ring-[#A6D96A] focus:border-transparent transition-shadow"
+                aria-describedby={errors.email ? "login-email-err" : undefined}
                 {...register("email")}
               />
-              {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+              {errors.email && <p id="login-email-err" role="alert" className="text-xs text-red-500">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-semibold text-[#1F2937]">Password</label>
-                <Link href="/forgot-password" className="text-xs text-[#0B3D2E] font-medium hover:underline">
+                <label htmlFor="login-password" className="block text-sm font-semibold text-[#111111]">Password</label>
+                <Link href="/forgot-password" className="text-xs text-[#0D4D36] font-medium hover:underline">
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={show ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="••••••••"
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 pr-12 text-sm outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow"
+                  className="w-full bg-white border border-[#E7E2DA] rounded-xl px-4 py-3.5 pr-12 text-sm outline-none focus:ring-2 focus:ring-[#A6D96A] focus:border-transparent transition-shadow"
+                  aria-describedby={errors.password ? "login-pw-err" : undefined}
                   {...register("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShow(!show)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0B3D2E] transition-colors"
+                  aria-label={show ? "Hide password" : "Show password"}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9E9284] hover:text-[#0D4D36] transition-colors"
                 >
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+              {errors.password && <p id="login-pw-err" role="alert" className="text-xs text-red-500">{errors.password.message}</p>}
             </div>
 
             {err && (
-              <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
+              <div role="alert" className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                 {err}
               </div>
             )}
 
             <Button
               type="submit"
-              className="w-full rounded-xl bg-[#0B3D2E] gap-2 shadow-lg shadow-[#0B3D2E]/20"
+              className="w-full rounded-xl bg-[#0D4D36] gap-2 shadow-lg shadow-[#0D4D36]/20"
               size="lg"
               loading={isSubmitting}
             >
@@ -213,9 +218,9 @@ function LoginContent() {
             </Button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-            <Link href="/signup?role=owner" className="inline-flex items-center gap-1.5 text-sm text-[#1F2937]/55 hover:text-[#0B3D2E] transition-colors">
-              <LogIn className="w-4 h-4" /> Are you a turf owner? <span className="font-semibold text-[#0B3D2E]">Register here</span>
+          <div className="mt-8 pt-6 border-t border-[#E7E2DA] text-center">
+            <Link href="/signup?role=owner" className="inline-flex items-center gap-1.5 text-sm text-[#111111]/55 hover:text-[#0D4D36] transition-colors">
+              <LogIn className="w-4 h-4" /> Are you a turf owner? <span className="font-semibold text-[#0D4D36]">Register here</span>
             </Link>
           </div>
         </div>
@@ -226,7 +231,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAF7F0]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F4F1EB]" />}>
       <LoginContent />
     </Suspense>
   );

@@ -6,9 +6,11 @@ interface AuthStore {
   user: User | null;
   loading: boolean;
   initialized: boolean;
+  emailVerified: boolean;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
   setInitialized: (initialized: boolean) => void;
+  setEmailVerified: (verified: boolean) => void;
   logout: () => void;
 }
 
@@ -18,10 +20,12 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       loading: true,
       initialized: false,
+      emailVerified: false,
       setUser: (user) => set({ user }),
       setLoading: (loading) => set({ loading }),
       setInitialized: (initialized) => set({ initialized }),
-      logout: () => set({ user: null }),
+      setEmailVerified: (emailVerified) => set({ emailVerified }),
+      logout: () => set({ user: null, emailVerified: false }),
     }),
     {
       name: "turfmacha-auth",

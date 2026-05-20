@@ -5,12 +5,10 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { AuthProvider } from "@/components/layout/AuthProvider";
-import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
-import { PWAInstallBanner } from "@/components/layout/PWAInstallBanner";
-import { PWAUpdateBanner } from "@/components/layout/PWAUpdateBanner";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Footer } from "@/components/layout/Footer";
+import { EmailVerificationBanner } from "@/components/layout/EmailVerificationBanner";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -36,7 +34,7 @@ export const metadata: Metadata = {
     template: "%s | TurfMacha",
   },
   description:
-    "Discover and book premium sports turfs near you. Football, cricket, badminton, basketball and more. Instant booking, best prices in India.",
+    "Discover and book premium sports turfs near you. Football, cricket, badminton, basketball and more. Instant booking, best prices in Kerala.",
   keywords: [
     "turf booking",
     "sports turf",
@@ -48,21 +46,16 @@ export const metadata: Metadata = {
     "turf booking India",
     "Kerala turf booking",
     "turf booking Kerala",
-    "sports booking app",
+    "Trivandrum turf booking",
+    "sports booking",
   ],
   authors: [{ name: "TurfMacha" }],
   creator: "TurfMacha",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "TurfMacha",
-  },
   formatDetection: { telephone: false },
   openGraph: {
     title: "TurfMacha — Book Sports Turf Near You",
     description:
-      "Discover and book premium sports turfs near you. Instant booking. Best prices.",
+      "Discover and book premium sports turfs near you. Instant booking. Best prices in Kerala.",
     type: "website",
     locale: "en_IN",
     siteName: "TurfMacha",
@@ -84,7 +77,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FAF7F0",
+  themeColor: "#F4F1EB",
   colorScheme: "light",
   width: "device-width",
   initialScale: 1,
@@ -99,36 +92,32 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    // ThemeProvider adds "dark" or "light" class — suppressHydrationWarning prevents
-    // mismatch between server-rendered class and client-resolved theme
-    <html lang="en" className={`${jakarta.variable} ${bricolage.variable}`} suppressHydrationWarning>
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-      </head>
+    <html lang="en" className={`${jakarta.variable} ${bricolage.variable}`}>
       <body className={`${jakarta.className} antialiased min-h-screen`}>
-        <ThemeProvider>
-          <AuthProvider>
-            <Suspense fallback={null}>
-              <PostHogProvider>
-                <Navbar />
-                <PageTransition>
-                  <main className="pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
-                    {children}
-                  </main>
-                </PageTransition>
-                <Footer />
-                <BottomNav />
-                <Toaster />
-                <PWAInstallBanner />
-                <PWAUpdateBanner />
-              </PostHogProvider>
-            </Suspense>
-          </AuthProvider>
-        </ThemeProvider>
+        {/* Skip to main content — keyboard accessibility */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-[#0D4D36] focus:text-white focus:text-sm focus:font-semibold focus:shadow-lg"
+        >
+          Skip to content
+        </a>
+
+        <AuthProvider>
+          <Suspense fallback={null}>
+            <PostHogProvider>
+              <Navbar />
+              <EmailVerificationBanner />
+              <PageTransition>
+                <main id="main-content" className="pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+                  {children}
+                </main>
+              </PageTransition>
+              <Footer />
+              <BottomNav />
+              <Toaster />
+            </PostHogProvider>
+          </Suspense>
+        </AuthProvider>
       </body>
     </html>
   );

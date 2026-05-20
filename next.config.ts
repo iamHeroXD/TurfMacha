@@ -1,19 +1,4 @@
 import type { NextConfig } from "next";
-import withPWAInit from "next-pwa";
-
-const withPWA = withPWAInit({
-  dest: "public",
-  // Disable service worker in development to avoid caching issues
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  // skipWaiting ensures updated SW activates immediately without waiting for old tabs to close
-  skipWaiting: true,
-  buildExcludes: [/middleware-manifest\.json$/],
-  // Fallback pages for offline mode
-  fallbacks: {
-    document: "/offline",
-  },
-});
 
 const nextConfig: NextConfig = {
   images: {
@@ -22,6 +7,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.supabase.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "picsum.photos" },
+      { protocol: "https", hostname: "i.pravatar.cc" },
     ],
   },
   experimental: {
@@ -58,4 +44,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;

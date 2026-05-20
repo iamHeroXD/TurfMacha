@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { User } from "@/types";
 
 export function useAuth() {
-  const { user, loading, initialized, setUser, setLoading, setInitialized } =
+  const { user, loading, initialized, setUser, setLoading, setInitialized, setEmailVerified } =
     useAuthStore();
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export function useAuth() {
     let isMounted = true;
 
     const fetchOrCreateProfile = async (
-      authUser: { id: string; email?: string; user_metadata?: Record<string, unknown> }
+      authUser: { id: string; email?: string; email_confirmed_at?: string | null; user_metadata?: Record<string, unknown> }
     ): Promise<User | null> => {
       try {
         const { data } = await supabase
@@ -25,7 +25,6 @@ export function useAuth() {
 
         if (data) return data as User;
 
-        // Profile missing — auto-create from auth metadata (e.g. Google OAuth)
         const meta = authUser.user_metadata ?? {};
         const email = authUser.email ?? "";
         const { data: created } = await supabase
@@ -37,9 +36,7 @@ export function useAuth() {
               full_name:
                 (meta.full_name as string) || email.split("@")[0] || "User",
               phone: (meta.phone as string) || null,
-              // Never accept 'admin' from metadata — DB trigger enforces this too
-              role:
-                (meta.role as string) === "owner" ? "owner" : "user",
+              role: (meta.role as string) === "owner" ? "owner" : "user",
             },
             { onConflict: "id" }
           )
@@ -54,7 +51,6 @@ export function useAuth() {
 
     const initAuth = async () => {
       try {
-        // getUser() validates the session server-side, preventing stale JWT abuse
         const {
           data: { user: authUser },
         } = await supabase.auth.getUser();
@@ -63,12 +59,21 @@ export function useAuth() {
 
         if (authUser) {
           const profile = await fetchOrCreateProfile(authUser);
-          if (isMounted) setUser(profile);
+          if (isMounted) {
+            setUser(profile);
+            setEmailVerified(!!authUser.email_confirmed_at);
+          }
         } else {
-          if (isMounted) setUser(null);
+          if (isMounted) {
+            setUser(null);
+            setEmailVerified(false);
+          }
         }
       } catch {
-        if (isMounted) setUser(null);
+        if (isMounted) {
+          setUser(null);
+          setEmailVerified(false);
+        }
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -83,16 +88,28 @@ export function useAuth() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
+
       try {
-        if (event === "SIGNED_OUT") {
-          if (isMounted) setUser(null);
+        // Session expired or token error — clear user and let middleware redirect
+        if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED" && !session) {
+          if (isMounted) {
+            setUser(null);
+            setEmailVerified(false);
+          }
           return;
         }
+
         if (session?.user) {
           const profile = await fetchOrCreateProfile(session.user);
-          if (isMounted) setUser(profile);
+          if (isMounted) {
+            setUser(profile);
+            setEmailVerified(!!session.user.email_confirmed_at);
+          }
         } else {
-          if (isMounted) setUser(null);
+          if (isMounted) {
+            setUser(null);
+            setEmailVerified(false);
+          }
         }
       } catch {
         if (isMounted) setUser(null);
@@ -105,7 +122,7 @@ export function useAuth() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [setUser, setLoading, setInitialized]);
+  }, [setUser, setLoading, setInitialized, setEmailVerified]);
 
   return { user, loading, initialized };
 }

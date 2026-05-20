@@ -23,42 +23,44 @@ export default function OwnerBookingsPage() {
 
   useEffect(() => {
     if (!user) { router.push("/login"); return; }
+    if (user.role !== "owner") { router.push("/dashboard/user"); return; }
 
     const fetchBookings = async () => {
+      setLoading(true);
       const supabase = createClient();
-      let query = supabase
+      let q = supabase
         .from("bookings")
         .select("*, turf:turfs!inner(*), user:users(*)")
         .eq("turfs.owner_id", user.id)
         .order("slot_date", { ascending: false });
-
-      if (filter !== "all") {
-        query = query.eq("status", filter);
-      }
-
-      const { data } = await query;
+      if (filter !== "all") q = q.eq("status", filter);
+      const { data } = await q;
       setBookings((data as Booking[]) || []);
       setLoading(false);
     };
-
     fetchBookings();
   }, [user, filter, router]);
 
-  return (
-    <div className="min-h-screen bg-[#FAF7F0] pt-28 pb-24 md:pb-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-display font-bold text-[#1F2937] flex items-center gap-2"
-          >
-            <Calendar className="h-6 w-6 text-[#0B3D2E]" />
-            All Bookings
-          </motion.h1>
+  const statusVariant = (s: string) =>
+    s === "confirmed" ? "success" : s === "cancelled" ? "destructive" : "warning";
 
+  return (
+    <div className="min-h-screen bg-[#F4F1EB] pt-14 pb-24 md:pb-8">
+
+      <div className="bg-white border-b border-[#E7E2DA]">
+        <div className="max-w-4xl mx-auto px-4 py-5 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="font-display font-bold text-xl text-[#111111] flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-[#0D4D36]" /> All Bookings
+            </h1>
+            {!loading && (
+              <p className="text-sm text-[#5F5F5F] mt-0.5">
+                {bookings.length} booking{bookings.length !== 1 ? "s" : ""}
+              </p>
+            )}
+          </div>
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-36 h-9 text-sm rounded-xl border-[#E7E2DA] bg-[#F4F1EB]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -69,58 +71,65 @@ export default function OwnerBookingsPage() {
             </SelectContent>
           </Select>
         </div>
+      </div>
 
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {loading ? (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
           </div>
         ) : bookings.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-sm">
-            <Calendar className="h-16 w-16 text-gray-200 mx-auto mb-4" />
-            <p className="text-[#6B7280] font-medium">No bookings found</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl border border-[#E7E2DA] p-14 text-center"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-[#F4F1EB] border border-[#E7E2DA] flex items-center justify-center mx-auto mb-4">
+              <Calendar className="h-7 w-7 text-[#C4BAB0]" />
+            </div>
+            <p className="font-semibold text-[#111111] mb-1">
+              {filter === "all" ? "No bookings yet" : `No ${filter} bookings`}
+            </p>
+            <p className="text-sm text-[#5F5F5F]">
+              {filter === "all"
+                ? "Player reservations will appear here once your turfs are listed."
+                : "Try a different status filter."}
+            </p>
+          </motion.div>
         ) : (
-          <div className="space-y-3">
-            {bookings.map((booking, i) => (
+          <div className="space-y-2.5">
+            {bookings.map((b, i) => (
               <motion.div
-                key={booking.id}
+                key={b.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
-                className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4 shadow-sm"
+                className="bg-white rounded-2xl border border-[#E7E2DA] p-4 flex items-center gap-4 hover:border-[#C4BAB0] transition-colors"
               >
                 <Avatar className="h-10 w-10 shrink-0">
-                  <AvatarFallback className="text-sm bg-[#0B3D2E]/8 text-[#0B3D2E] font-semibold">
-                    {booking.user ? getInitials(booking.user.full_name) : "?"}
+                  <AvatarFallback className="text-xs bg-[#0D4D36]/8 text-[#0D4D36] font-semibold">
+                    {b.user ? getInitials(b.user.full_name) : "?"}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-[#1F2937] text-sm">{booking.user?.full_name || "Unknown"}</p>
-                    <span className="text-[#9CA3AF] text-xs">·</span>
-                    <p className="text-xs text-[#6B7280]">{booking.turf?.name}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="font-semibold text-[#111111] text-sm">{b.user?.full_name || "Unknown"}</p>
+                    <span className="text-[#C4BAB0] text-xs">·</span>
+                    <p className="text-xs text-[#5F5F5F] truncate">{b.turf?.name}</p>
                   </div>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-[#9CA3AF]">
-                    <span>{format(new Date(booking.slot_date), "d MMM yyyy")}</span>
-                    <span>·</span>
-                    <span>{formatTime(booking.start_time)} – {formatTime(booking.end_time)}</span>
-                    <span>·</span>
-                    <span>{booking.sport}</span>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-[#9E9284] flex-wrap">
+                    <span>{format(new Date(b.slot_date + "T12:00:00"), "d MMM yyyy")}</span>
+                    <span className="text-[#C4BAB0]">·</span>
+                    <span>{formatTime(b.start_time)} – {formatTime(b.end_time)}</span>
+                    <span className="text-[#C4BAB0]">·</span>
+                    <span className="capitalize">{b.sport}</span>
                   </div>
                 </div>
 
                 <div className="text-right shrink-0">
-                  <p className="font-bold text-[#0B3D2E] text-sm">{formatPrice(booking.total_price)}</p>
-                  <Badge
-                    variant={
-                      booking.status === "confirmed" ? "success"
-                        : booking.status === "cancelled" ? "destructive"
-                        : "warning"
-                    }
-                    className="mt-1 text-[10px]"
-                  >
-                    {booking.status}
+                  <p className="font-bold text-[#0D4D36] text-sm">{formatPrice(b.total_price)}</p>
+                  <Badge variant={statusVariant(b.status) as "success" | "warning" | "destructive"} className="mt-1 text-[10px] capitalize">
+                    {b.status}
                   </Badge>
                 </div>
               </motion.div>

@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: ["class"],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -15,27 +14,34 @@ const config: Config = {
         mono:    ["ui-monospace", "JetBrains Mono", "monospace"],
       },
       colors: {
-        /* Design-reference turf palette */
+        /* TurfMacha design system palette */
         turf: {
-          emerald:  "#0B3D2E",
-          lime:     "#A3E635",
-          cream:    "#FAF7F0",
-          charcoal: "#1F2937",
-          green:    "#166534",
+          bg:       "#F4F1EB",  /* premium cream matte background */
+          green:    "#0D4D36",  /* primary forest green */
+          accent:   "#A6D96A",  /* accent green */
+          text:     "#111111",  /* primary text */
+          muted:    "#5F5F5F",  /* secondary text */
+          card:     "#FFFFFF",  /* card background */
+          border:   "#E7E2DA",  /* warm border */
+          /* Legacy aliases */
+          emerald:  "#0D4D36",
+          lime:     "#A6D96A",
+          cream:    "#F4F1EB",
+          charcoal: "#111111",
         },
-        /* Mapped brand palette (used by existing components) */
+        /* Brand scale for gradient/hover states */
         brand: {
-          50:  "#f0f9f4",
-          100: "#dceed8",
-          200: "#bde0b0",
-          300: "#c5e88d",
-          400: "#a3e635",  /* turf-lime  */
-          500: "#7cb85e",
-          600: "#4a8c42",
-          700: "#2a6c35",
-          800: "#0b3d2e",  /* turf-emerald */
-          900: "#063324",
-          950: "#021d14",
+          50:  "#f0faf4",
+          100: "#ddf0e0",
+          200: "#b8e3be",
+          300: "#c8e88c",
+          400: "#a6d96a",  /* accent green */
+          500: "#78c048",
+          600: "#4f9630",
+          700: "#2e7020",
+          800: "#0d4d36",  /* primary forest green */
+          900: "#083525",
+          950: "#031d14",
         },
         /* shadcn/Radix tokens */
         background: "hsl(var(--background))",

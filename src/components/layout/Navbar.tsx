@@ -1,13 +1,14 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, LogOut, User, LayoutDashboard, ChevronDown, MapPin, LogIn } from "lucide-react";
+import { Menu, X, LogOut, User, LayoutDashboard, ChevronDown, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationCenter } from "@/components/layout/NotificationCenter";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
 import { getInitials, cn } from "@/lib/utils";
@@ -61,7 +62,7 @@ export function Navbar() {
         className={cn(
           "fixed top-0 inset-x-0 z-50 transition-all duration-300",
           scrolled || mobileOpen
-            ? "bg-[#FAF7F0]/92 backdrop-blur-md shadow-sm py-3 border-b border-[#0B3D2E]/8"
+            ? "bg-[#F4F1EB]/92 backdrop-blur-md shadow-sm py-3 border-b border-[#0D4D36]/8"
             : "bg-transparent py-5"
         )}
       >
@@ -69,15 +70,14 @@ export function Navbar() {
           <div className="flex justify-between items-center">
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 shrink-0">
+            <Link href="/" className="flex items-center gap-2.5 shrink-0" aria-label="TurfMacha home">
               <motion.div
                 whileHover={{ rotate: -12, scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="w-10 h-10 bg-[#0B3D2E] rounded-xl flex items-center justify-center transform -rotate-6 shadow-md"
               >
-                <MapPin className="w-5 h-5 text-[#A3E635]" />
+                <BrandMark size={40} />
               </motion.div>
-              <span className="font-display font-bold text-xl text-[#0B3D2E] tracking-tight">
+              <span className="font-display font-bold text-xl text-[#0D4D36] tracking-tight">
                 TurfMacha
               </span>
             </Link>
@@ -93,15 +93,15 @@ export function Navbar() {
                     className={cn(
                       "relative font-medium text-sm transition-colors pb-0.5",
                       active
-                        ? "text-[#0B3D2E]"
-                        : "text-[#1F2937]/70 hover:text-[#0B3D2E]"
+                        ? "text-[#0D4D36]"
+                        : "text-[#111111]/70 hover:text-[#0D4D36]"
                     )}
                   >
                     {l.label}
                     {active && (
                       <motion.span
                         layoutId="nav-dot"
-                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#A3E635]"
+                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#A6D96A]"
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}
@@ -119,15 +119,15 @@ export function Navbar() {
                   <motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={() => setMenuOpen(!menuOpen)}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-[#0B3D2E]/8 transition-colors"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-[#0D4D36]/8 transition-colors"
                   >
                     <Avatar className="h-7 w-7">
                       <AvatarImage src={user.avatar_url} />
-                      <AvatarFallback className="text-[10px] bg-[#0B3D2E]/10 text-[#0B3D2E] font-bold">
+                      <AvatarFallback className="text-[10px] bg-[#0D4D36]/10 text-[#0D4D36] font-bold">
                         {getInitials(user.full_name)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:block text-sm text-[#1F2937]/70 max-w-[80px] truncate font-medium">
+                    <span className="hidden md:block text-sm text-[#111111]/70 max-w-[80px] truncate font-medium">
                       {user.full_name.split(" ")[0]}
                     </span>
                     <motion.span
@@ -135,7 +135,7 @@ export function Navbar() {
                       transition={{ duration: 0.2 }}
                       className="hidden md:block"
                     >
-                      <ChevronDown className="h-3.5 w-3.5 text-[#1F2937]/50" />
+                      <ChevronDown className="h-3.5 w-3.5 text-[#111111]/50" />
                     </motion.span>
                   </motion.button>
 
@@ -146,12 +146,12 @@ export function Navbar() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 6, scale: 0.96 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-12 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden"
+                        className="absolute right-0 top-12 w-56 bg-white border border-[#E7E2DA] rounded-2xl shadow-xl overflow-hidden"
                       >
-                        <div className="p-3.5 border-b border-gray-100">
-                          <p className="text-sm font-semibold text-[#1F2937] truncate">{user.full_name}</p>
-                          <p className="text-xs text-[#6B7280] truncate mt-0.5">{user.email}</p>
-                          <span className="mt-2 inline-block text-[10px] px-2 py-0.5 rounded-full bg-[#0B3D2E]/8 text-[#0B3D2E] border border-[#0B3D2E]/15 capitalize font-bold">
+                        <div className="p-3.5 border-b border-[#E7E2DA]">
+                          <p className="text-sm font-semibold text-[#111111] truncate">{user.full_name}</p>
+                          <p className="text-xs text-[#5F5F5F] truncate mt-0.5">{user.email}</p>
+                          <span className="mt-2 inline-block text-[10px] px-2 py-0.5 rounded-full bg-[#0D4D36]/8 text-[#0D4D36] border border-[#0D4D36]/15 capitalize font-bold">
                             {user.role}
                           </span>
                         </div>
@@ -163,13 +163,13 @@ export function Navbar() {
                             <motion.div key={href} custom={i} variants={menuItemVariants} initial="hidden" animate="show">
                               <Link
                                 href={href}
-                                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-[#6B7280] hover:text-[#1F2937] hover:bg-[#FAF7F0] transition-colors"
+                                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-[#5F5F5F] hover:text-[#111111] hover:bg-[#F4F1EB] transition-colors"
                               >
                                 <Icon className="h-3.5 w-3.5 shrink-0" /> {label}
                               </Link>
                             </motion.div>
                           ))}
-                          <div className="border-t border-gray-100 my-1" />
+                          <div className="border-t border-[#E7E2DA] my-1" />
                           <motion.button
                             custom={2} variants={menuItemVariants} initial="hidden" animate="show"
                             onClick={handleLogout}
@@ -183,20 +183,20 @@ export function Navbar() {
                   </AnimatePresence>
                 </div>
               ) : (
-                <div className="hidden md:flex items-center gap-3 pl-3 border-l border-[#0B3D2E]/10">
+                <div className="hidden md:flex items-center gap-3 pl-3 border-l border-[#0D4D36]/10">
                   <Link
                     href="/login"
-                    className="flex items-center gap-1.5 font-medium text-sm text-[#1F2937]/70 hover:text-[#0B3D2E] transition-colors"
+                    className="flex items-center gap-1.5 font-medium text-sm text-[#111111]/70 hover:text-[#0D4D36] transition-colors"
                   >
                     <LogIn className="w-4 h-4" /> Sign in
                   </Link>
-                  <Link href="/download">
+                  <Link href="/signup">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                       <Button
                         size="sm"
-                        className="rounded-full bg-[#0B3D2E] text-white px-5 py-2.5 shadow-lg shadow-[#0B3D2E]/20 hover:bg-[#0B3D2E]/90"
+                        className="rounded-full bg-[#0D4D36] text-white px-5 py-2.5 shadow-lg shadow-[#0D4D36]/20 hover:bg-[#0D4D36]/90"
                       >
-                        Download App
+                        Get Started
                       </Button>
                     </motion.div>
                   </Link>
@@ -207,7 +207,7 @@ export function Navbar() {
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden p-2 text-[#0B3D2E]"
+                className="md:hidden p-2 text-[#0D4D36]"
                 aria-label="Toggle menu"
               >
                 <AnimatePresence mode="wait" initial={false}>
@@ -234,7 +234,7 @@ export function Navbar() {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.22 }}
-              className="md:hidden overflow-hidden bg-[#FAF7F0] border-t border-[#0B3D2E]/10 shadow-lg"
+              className="md:hidden overflow-hidden bg-[#F4F1EB] border-t border-[#0D4D36]/10 shadow-lg"
             >
               <div className="px-4 py-4 flex flex-col gap-1">
                 {NAV_LINKS.map((l, i) => (
@@ -244,8 +244,8 @@ export function Navbar() {
                       className={cn(
                         "block px-3 py-3 rounded-xl font-medium text-sm transition-colors",
                         isActive(l.href)
-                          ? "bg-[#0B3D2E]/8 text-[#0B3D2E]"
-                          : "text-[#1F2937]/70 hover:text-[#0B3D2E]"
+                          ? "bg-[#0D4D36]/8 text-[#0D4D36]"
+                          : "text-[#111111]/70 hover:text-[#0D4D36]"
                       )}
                     >
                       {l.label}
@@ -256,23 +256,23 @@ export function Navbar() {
                 {!user ? (
                   <motion.div
                     custom={NAV_LINKS.length} variants={menuItemVariants} initial="hidden" animate="show"
-                    className="flex gap-2 pt-3 border-t border-[#0B3D2E]/10 mt-2"
+                    className="flex gap-2 pt-3 border-t border-[#0D4D36]/10 mt-2"
                   >
                     <Link href="/login" className="flex-1">
                       <Button variant="outline" className="w-full rounded-xl">Sign in</Button>
                     </Link>
-                    <Link href="/download" className="flex-1">
-                      <Button className="w-full rounded-xl bg-[#0B3D2E]">Download App</Button>
+                    <Link href="/signup" className="flex-1">
+                      <Button className="w-full rounded-xl bg-[#0D4D36]">Get Started</Button>
                     </Link>
                   </motion.div>
                 ) : (
                   <motion.div
                     custom={NAV_LINKS.length} variants={menuItemVariants} initial="hidden" animate="show"
-                    className="pt-2 border-t border-[#0B3D2E]/10 mt-2 space-y-1"
+                    className="pt-2 border-t border-[#0D4D36]/10 mt-2 space-y-1"
                   >
                     <Link
                       href={user.role === "owner" ? "/dashboard/owner" : "/dashboard/user"}
-                      className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm text-[#1F2937]/70 hover:text-[#0B3D2E] hover:bg-[#0B3D2E]/8 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm text-[#111111]/70 hover:text-[#0D4D36] hover:bg-[#0D4D36]/8 transition-colors"
                     >
                       <LayoutDashboard className="h-4 w-4" /> Dashboard
                     </Link>

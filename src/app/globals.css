@@ -9,26 +9,26 @@
    CSS Custom Properties — Light/Warm Theme
 ───────────────────────────────────────────── */
 :root {
-  /* Radix / shadcn design tokens — Light (turf palette) */
-  --background:           43  4% 96%;     /* #FAF7F0 turf-cream */
-  --foreground:          220 26% 14%;     /* #1F2937 turf-charcoal */
-  --card:                  0  0% 100%;
-  --card-foreground:     220 26% 14%;
+  /* TurfMacha design system — single light theme */
+  --background:           40  7% 93%;     /* #F4F1EB premium cream matte */
+  --foreground:            0  0%  7%;     /* #111111 primary text */
+  --card:                  0  0% 100%;    /* #FFFFFF card bg */
+  --card-foreground:       0  0%  7%;
   --popover:               0  0% 100%;
-  --popover-foreground:  220 26% 14%;
-  --primary:             162 70% 14%;     /* #0B3D2E turf-emerald */
-  --primary-foreground:   43  4% 96%;     /* cream on emerald */
-  --secondary:            37 15% 90%;     /* warm grey-cream */
-  --secondary-foreground: 220 26% 14%;
-  --muted:                37 15% 90%;
-  --muted-foreground:      0  0% 42%;     /* #6B7280 */
-  --accent:               83 78% 55%;     /* #A3E635 turf-lime */
-  --accent-foreground:   162 70% 14%;
+  --popover-foreground:    0  0%  7%;
+  --primary:             158 67% 18%;     /* #0D4D36 forest green */
+  --primary-foreground:   40  7% 93%;     /* cream on green */
+  --secondary:            40  6% 88%;     /* warm grey-cream */
+  --secondary-foreground:  0  0%  7%;
+  --muted:                40  6% 88%;
+  --muted-foreground:      0  0% 37%;     /* #5F5F5F secondary text */
+  --accent:               82 52% 63%;     /* #A6D96A accent green */
+  --accent-foreground:   158 67% 18%;
   --destructive:           0 72% 51%;
   --destructive-foreground: 0 0% 98%;
-  --border:               37 14% 89%;     /* warm cream border */
-  --input:                37 14% 89%;
-  --ring:                162 70% 14%;     /* turf-emerald */
+  --border:               38 14% 89%;     /* #E7E2DA warm border */
+  --input:                38 14% 89%;
+  --ring:                158 67% 18%;     /* forest green */
   --radius:               0.75rem;
 
   --dur-fast:  150ms;
@@ -42,7 +42,7 @@
 ───────────────────────────────────────────── */
 @layer base {
   * { @apply border-border; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; color-scheme: light; }
 
   body {
     background-color: hsl(var(--background));
@@ -64,11 +64,11 @@
   ::-webkit-scrollbar-thumb { background: rgba(127,127,127,0.15); border-radius: 99px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(127,127,127,0.3); }
 
-  ::selection { background: rgba(163,230,53,0.28); color: #0B3D2E; }
+  ::selection { background: rgba(163,230,53,0.28); color: #0D4D36; }
 
   :focus-visible {
-    outline: 2px solid rgba(11, 61, 46, 0.45);
-    outline-offset: 2px;
+    outline: 2px solid #0D4D36;
+    outline-offset: 3px;
     border-radius: 6px;
   }
 }
@@ -167,7 +167,7 @@
   .tag-green {
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold;
     background-color: rgba(11, 61, 46, 0.08);
-    color: #0B3D2E;
+    color: #0D4D36;
     border: 1px solid rgba(11, 61, 46, 0.15);
   }
   .tag-red   { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200; }
@@ -182,7 +182,7 @@
   .glass        { background-color: hsl(var(--card)); border: 1px solid hsl(var(--border)); }
   .glass-card   { @apply card; }
   .glass-strong { background-color: hsl(var(--secondary)); border: 1px solid hsl(var(--border)); @apply rounded-2xl; }
-  .gradient-text { color: #0B3D2E; }
+  .gradient-text { color: #0D4D36; }
 
   .input {
     @apply h-11 w-full rounded-xl px-4 text-sm;
@@ -190,7 +190,7 @@
     border: 1.5px solid hsl(var(--border));
     color: hsl(var(--foreground));
     @apply placeholder:text-muted-foreground;
-    @apply focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E]/40;
+    @apply focus:outline-none focus:ring-2 focus:ring-[#0D4D36]/20 focus:border-[#0D4D36]/40;
     transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   }
 

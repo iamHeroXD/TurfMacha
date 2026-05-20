@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { BrandMark } from "@/components/ui/BrandMark";
 
 /* Simple social SVG icons (brand icons removed from lucide-react v1.x) */
 function InstagramIcon({ className }: { className?: string }) {
@@ -38,7 +38,6 @@ const COMPANY = [
   { label: "How it Works",   href: "/how-it-works"},
   { label: "For Owners",     href: "/for-owners" },
   { label: "Contact",        href: "/contact"    },
-  { label: "Download App",   href: "/download"   },
 ];
 
 const LEGAL = [
@@ -48,21 +47,19 @@ const LEGAL = [
 
 export function Footer() {
   return (
-    <footer className="bg-[#0B3D2E] text-[#FAF7F0] pt-20 pb-10">
+    <footer className="bg-[#0D4D36] text-[#F4F1EB] pt-20 pb-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
 
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 bg-[#A3E635] rounded-xl flex items-center justify-center transform -rotate-6 shadow-lg">
-                <MapPin className="w-6 h-6 text-[#0B3D2E]" />
-              </div>
+              <BrandMark size={40} />
               <span className="font-display font-bold text-2xl tracking-tight text-white">
                 TurfMacha
               </span>
             </div>
-            <p className="text-[#FAF7F0]/65 mb-6 leading-relaxed text-sm">
+            <p className="text-[#F4F1EB]/65 mb-6 leading-relaxed text-sm">
               Kerala&apos;s #1 turf booking platform. Making sports accessible, one tap at a time.
             </p>
             <div className="flex gap-3">
@@ -74,7 +71,7 @@ export function Footer() {
                 <a
                   key={href + Icon.name}
                   href={href}
-                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#A3E635] hover:text-[#0B3D2E] transition-colors"
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#A6D96A] hover:text-[#0D4D36] transition-colors"
                 >
                   <Icon className="w-5 h-5" />
                 </a>
@@ -85,15 +82,15 @@ export function Footer() {
           {/* Cities */}
           <div>
             <h4 className="font-display font-bold text-lg mb-6 text-white">Cities</h4>
-            <ul className="space-y-3 text-[#FAF7F0]/65 text-sm">
+            <ul className="space-y-3 text-[#F4F1EB]/65 text-sm">
               {CITIES.map(({ label, href }) => (
                 <li key={label}>
                   {href ? (
-                    <Link href={href} className="hover:text-[#A3E635] transition-colors">
+                    <Link href={href} className="hover:text-[#A6D96A] transition-colors">
                       {label}
                     </Link>
                   ) : (
-                    <span className="text-[#FAF7F0]/35 cursor-not-allowed">{label}</span>
+                    <span className="text-[#F4F1EB]/35 cursor-not-allowed">{label}</span>
                   )}
                 </li>
               ))}
@@ -103,10 +100,10 @@ export function Footer() {
           {/* Company */}
           <div>
             <h4 className="font-display font-bold text-lg mb-6 text-white">Company</h4>
-            <ul className="space-y-3 text-[#FAF7F0]/65 text-sm">
+            <ul className="space-y-3 text-[#F4F1EB]/65 text-sm">
               {COMPANY.map(({ label, href }) => (
                 <li key={label}>
-                  <Link href={href} className="hover:text-[#A3E635] transition-colors">
+                  <Link href={href} className="hover:text-[#A6D96A] transition-colors">
                     {label}
                   </Link>
                 </li>
@@ -114,33 +111,30 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* App */}
+          {/* Support */}
           <div>
-            <h4 className="font-display font-bold text-lg mb-6 text-white">Get the App</h4>
-            <div className="flex flex-col gap-3">
-              <a href="#" className="transition-transform hover:scale-105 active:scale-95 inline-block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-                  alt="Download on the App Store"
-                  className="h-[40px] w-auto object-contain"
-                />
-              </a>
-              <a href="#" className="transition-transform hover:scale-105 active:scale-95 inline-block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-                  alt="Get it on Google Play"
-                  className="h-[56px] -ml-2 w-auto object-contain"
-                  style={{ marginTop: "-8px", marginBottom: "-8px" }}
-                />
+            <h4 className="font-display font-bold text-lg mb-6 text-white">Support</h4>
+            <ul className="space-y-3 text-[#F4F1EB]/65 text-sm">
+              {LEGAL.map(({ label, href }) => (
+                <li key={label}>
+                  <Link href={href} className="hover:text-[#A6D96A] transition-colors">{label}</Link>
+                </li>
+              ))}
+              <li>
+                <Link href="/contact" className="hover:text-[#A6D96A] transition-colors">Help Center</Link>
+              </li>
+            </ul>
+            <div className="mt-8 p-4 rounded-2xl bg-white/8 border border-white/10">
+              <p className="text-white/80 text-xs font-semibold mb-1">Questions?</p>
+              <a href="mailto:hello@turfmacha.com" className="text-[#A6D96A] text-sm font-medium hover:underline">
+                hello@turfmacha.com
               </a>
             </div>
           </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[#FAF7F0]/40">
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[#F4F1EB]/40">
           <p>© {new Date().getFullYear()} TurfMacha. All rights reserved.</p>
           <div className="flex gap-6">
             {LEGAL.map(({ label, href }) => (

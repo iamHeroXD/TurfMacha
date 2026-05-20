@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
@@ -58,10 +58,10 @@ export default function AdminTurfsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-display font-bold text-[#1F2937] flex items-center gap-2">
-          <Building2 className="h-6 w-6 text-[#0B3D2E]" /> Turfs
+        <h1 className="text-2xl font-display font-bold text-[#111111] flex items-center gap-2">
+          <Building2 className="h-6 w-6 text-[#0D4D36]" /> Turfs
         </h1>
-        <p className="text-sm text-[#6B7280] mt-0.5">{turfs.length} listings</p>
+        <p className="text-sm text-[#5F5F5F] mt-0.5">{turfs.length} listings</p>
       </div>
 
       {loading ? (
@@ -74,7 +74,7 @@ export default function AdminTurfsPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.02 }}
-              className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white shadow-sm"
+              className="flex items-center gap-3 p-3 rounded-xl border border-[#E7E2DA] bg-white shadow-sm"
             >
               <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0">
                 <Image
@@ -86,11 +86,11 @@ export default function AdminTurfsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-[#1F2937] text-sm truncate">{t.name}</p>
+                  <p className="font-medium text-[#111111] text-sm truncate">{t.name}</p>
                   {t.is_featured && <Badge variant="success" className="text-[10px]">Featured</Badge>}
                   {!t.is_active && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
                 </div>
-                <p className="text-xs text-[#9CA3AF]">
+                <p className="text-xs text-[#9E9284]">
                   {t.city} · {formatPrice(t.price_per_hour)}/hr · <Star className="inline h-3 w-3" /> {t.rating || "New"}
                 </p>
               </div>
@@ -103,7 +103,7 @@ export default function AdminTurfsPage() {
                   variant="ghost"
                   onClick={() => toggleFeatured(t)}
                   title={t.is_featured ? "Unfeature" : "Feature"}
-                  className={t.is_featured ? "text-amber-500" : "text-[#6B7280]"}
+                  className={t.is_featured ? "text-amber-500" : "text-[#5F5F5F]"}
                 >
                   ★
                 </Button>

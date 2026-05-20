@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,13 +14,13 @@ const TYPE_ICON: Record<AppNotification["type"], React.ComponentType<{ className
 };
 
 const TYPE_COLOR: Record<AppNotification["type"], string> = {
-  booking:      "text-[#0B3D2E] bg-[#0B3D2E]/10",
+  booking:      "text-[#0D4D36] bg-[#0D4D36]/10",
   payment:      "text-blue-600 bg-blue-50",
   coins:        "text-amber-600 bg-amber-50",
   cancellation: "text-red-600 bg-red-50",
   refund:       "text-orange-600 bg-orange-50",
   reminder:     "text-purple-600 bg-purple-50",
-  admin:        "text-[#6B7280] bg-gray-100",
+  admin:        "text-[#5F5F5F] bg-[#F4F1EB]",
 };
 
 export function NotificationCenter() {
@@ -46,7 +46,7 @@ export function NotificationCenter() {
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() => setOpen(!open)}
-        className="relative p-1.5 rounded-xl text-[#6B7280] hover:text-[#1F2937] hover:bg-gray-100 transition-colors"
+        className="relative p-1.5 rounded-xl text-[#5F5F5F] hover:text-[#111111] hover:bg-[#F4F1EB] transition-colors"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
       >
         <Bell className="h-[18px] w-[18px]" />
@@ -56,7 +56,7 @@ export function NotificationCenter() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
-              className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 flex items-center justify-center rounded-full bg-[#0B3D2E] text-white text-[9px] font-bold px-0.5"
+              className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 flex items-center justify-center rounded-full bg-[#0D4D36] text-white text-[9px] font-bold px-0.5"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </motion.span>
@@ -72,14 +72,14 @@ export function NotificationCenter() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-11 w-80 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden z-50"
+            className="absolute right-0 top-11 w-80 bg-white border border-[#E7E2DA] rounded-2xl shadow-xl overflow-hidden z-50"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-100">
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#E7E2DA]">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-display font-bold text-[#1F2937]">Notifications</p>
+                <p className="text-sm font-display font-bold text-[#111111]">Notifications</p>
                 {unreadCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-[#0B3D2E]/10 text-[#0B3D2E] text-[10px] font-bold">
+                  <span className="px-1.5 py-0.5 rounded-full bg-[#0D4D36]/10 text-[#0D4D36] text-[10px] font-bold">
                     {unreadCount}
                   </span>
                 )}
@@ -87,7 +87,7 @@ export function NotificationCenter() {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="flex items-center gap-1 text-[11px] text-[#6B7280] hover:text-[#0B3D2E] transition-colors font-medium"
+                  className="flex items-center gap-1 text-[11px] text-[#5F5F5F] hover:text-[#0D4D36] transition-colors font-medium"
                 >
                   <CheckCheck className="h-3 w-3" /> Mark all read
                 </button>
@@ -97,24 +97,24 @@ export function NotificationCenter() {
             {/* List */}
             <div className="max-h-80 overflow-y-auto">
               {loading && notifications.length === 0 ? (
-                <div className="py-8 text-center text-[#9CA3AF] text-sm">Loading…</div>
+                <div className="py-8 text-center text-[#9E9284] text-sm">Loading…</div>
               ) : notifications.length === 0 ? (
                 <div className="py-10 text-center">
-                  <Bell className="h-8 w-8 text-[#D1D5DB] mx-auto mb-2" />
-                  <p className="text-sm text-[#9CA3AF]">No notifications yet</p>
+                  <Bell className="h-8 w-8 text-[#C4BAB0] mx-auto mb-2" />
+                  <p className="text-sm text-[#9E9284]">No notifications yet</p>
                 </div>
               ) : (
                 notifications.map((n) => {
                   const Icon       = TYPE_ICON[n.type] ?? Bell;
-                  const colorClass = TYPE_COLOR[n.type] ?? "text-[#6B7280] bg-gray-100";
+                  const colorClass = TYPE_COLOR[n.type] ?? "text-[#5F5F5F] bg-[#F4F1EB]";
                   return (
                     <motion.div
                       key={n.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       className={cn(
-                        "flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-0",
-                        !n.read && "bg-[#0B3D2E]/3"
+                        "flex items-start gap-3 px-4 py-3 hover:bg-[#F4F1EB] transition-colors cursor-pointer border-b border-[#E7E2DA] last:border-0",
+                        !n.read && "bg-[#0D4D36]/3"
                       )}
                       onClick={() => { if (!n.read) markRead(n.id); }}
                     >
@@ -123,17 +123,17 @@ export function NotificationCenter() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <p className={cn("text-xs font-semibold", n.read ? "text-[#6B7280]" : "text-[#1F2937]")}>
+                          <p className={cn("text-xs font-semibold", n.read ? "text-[#5F5F5F]" : "text-[#111111]")}>
                             {n.title}
                           </p>
-                          {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-[#0B3D2E] shrink-0" />}
+                          {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-[#0D4D36] shrink-0" />}
                         </div>
-                        <p className="text-[11px] text-[#9CA3AF] mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
-                        <p className="text-[10px] text-[#D1D5DB] mt-1">
+                        <p className="text-[11px] text-[#9E9284] mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
+                        <p className="text-[10px] text-[#C4BAB0] mt-1">
                           {format(new Date(n.created_at), "d MMM · h:mm a")}
                         </p>
                       </div>
-                      {n.read && <Check className="h-3 w-3 text-[#D1D5DB] shrink-0 mt-1" />}
+                      {n.read && <Check className="h-3 w-3 text-[#C4BAB0] shrink-0 mt-1" />}
                     </motion.div>
                   );
                 })

@@ -14,8 +14,8 @@ import { SPORTS_CONFIG, AMENITIES_LIST } from "@/lib/utils";
 import { Sport, Turf } from "@/types";
 import { toast } from "@/hooks/useToast";
 
-const inputCls = "w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow";
-const cardCls  = "bg-white rounded-2xl border-2 border-gray-100 p-6 space-y-4";
+const inputCls = "w-full bg-white border border-[#E7E2DA] rounded-xl px-4 py-3 text-sm text-[#111111] placeholder:text-[#9E9284] outline-none focus:ring-2 focus:ring-[#A6D96A] focus:border-transparent transition-shadow";
+const cardCls  = "bg-white rounded-2xl border-2 border-[#E7E2DA] p-6 space-y-4";
 
 export default function EditTurfPage() {
   const { user }   = useAuthStore();
@@ -88,7 +88,7 @@ export default function EditTurfPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAF7F0] pt-14 px-4">
+      <div className="min-h-screen bg-[#F4F1EB] pt-14 px-4">
         <div className="max-w-2xl mx-auto space-y-4 py-8">
           <div className="h-10 w-48 skeleton rounded-xl" />
           {[...Array(4)].map((_, i) => <div key={i} className="h-40 rounded-2xl skeleton" />)}
@@ -98,18 +98,18 @@ export default function EditTurfPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F0] pt-14 pb-24 md:pb-8">
-      <div className="bg-white border-b border-gray-100">
+    <div className="min-h-screen bg-[#F4F1EB] pt-14 pb-24 md:pb-8">
+      <div className="bg-white border-b border-[#E7E2DA]">
         <div className="max-w-2xl mx-auto px-4 py-5 flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-xl border border-gray-200 text-[#6B7280] hover:text-[#1F2937] transition-colors"
+            className="p-2 rounded-xl border border-[#E7E2DA] text-[#5F5F5F] hover:text-[#111111] transition-colors"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="font-display font-bold text-2xl text-[#0B3D2E]">Edit Turf</h1>
-            <p className="text-[#9CA3AF] text-sm">{turf?.name}</p>
+            <h1 className="font-display font-bold text-2xl text-[#0D4D36]">Edit Turf</h1>
+            <p className="text-[#9E9284] text-sm">{turf?.name}</p>
           </div>
         </div>
       </div>
@@ -119,20 +119,20 @@ export default function EditTurfPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
             <div className={cardCls}>
-              <h2 className="font-display font-bold text-[#1F2937]">Basic Information</h2>
+              <h2 className="font-display font-bold text-[#111111]">Basic Information</h2>
               <div>
-                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Turf Name *</label>
+                <label className="block text-sm font-semibold text-[#111111] mb-1.5">Turf Name *</label>
                 <input {...register("name")} className={inputCls} />
                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Description *</label>
+                <label className="block text-sm font-semibold text-[#111111] mb-1.5">Description *</label>
                 <textarea {...register("description")} rows={3} className={`${inputCls} resize-none`} />
               </div>
             </div>
 
             <div className={cardCls}>
-              <h2 className="font-display font-bold text-[#1F2937]">Sports *</h2>
+              <h2 className="font-display font-bold text-[#111111]">Sports *</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {(Object.entries(SPORTS_CONFIG) as [Sport, (typeof SPORTS_CONFIG)[Sport]][]).map(([sport, cfg]) => {
                   const sel = selectedSports.includes(sport);
@@ -141,7 +141,7 @@ export default function EditTurfPage() {
                       key={sport} type="button" onClick={() => toggleSport(sport)}
                       style={sel ? { backgroundColor: cfg.selectedBg, color: cfg.selectedText, borderColor: cfg.selectedBg } : {}}
                       className={`p-3 rounded-xl border-2 text-sm font-semibold transition-all flex items-center gap-2 ${
-                        sel ? "border-transparent" : "border-gray-200 text-[#6B7280] bg-white hover:border-[#0B3D2E]/20"
+                        sel ? "border-transparent" : "border-[#E7E2DA] text-[#5F5F5F] bg-white hover:border-[#0D4D36]/20"
                       }`}
                     >
                       {cfg.emoji} {cfg.label}
@@ -152,45 +152,45 @@ export default function EditTurfPage() {
             </div>
 
             <div className={cardCls}>
-              <h2 className="font-display font-bold text-[#1F2937]">Location</h2>
+              <h2 className="font-display font-bold text-[#111111]">Location</h2>
               <input {...register("address")} placeholder="Address" className={inputCls} />
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">City</label>
+                  <label className="block text-sm font-semibold text-[#111111] mb-1.5">City</label>
                   <input {...register("city")} className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">State</label>
+                  <label className="block text-sm font-semibold text-[#111111] mb-1.5">State</label>
                   <input {...register("state")} className={inputCls} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Latitude</label>
+                  <label className="block text-sm font-semibold text-[#111111] mb-1.5">Latitude</label>
                   <input type="number" step="any" {...register("latitude", { valueAsNumber: true })} className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Longitude</label>
+                  <label className="block text-sm font-semibold text-[#111111] mb-1.5">Longitude</label>
                   <input type="number" step="any" {...register("longitude", { valueAsNumber: true })} className={inputCls} />
                 </div>
               </div>
             </div>
 
             <div className={cardCls}>
-              <h2 className="font-display font-bold text-[#1F2937]">Pricing &amp; Hours</h2>
+              <h2 className="font-display font-bold text-[#111111]">Pricing &amp; Hours</h2>
               <div className="relative">
-                <IndianRupee className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
+                <IndianRupee className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9E9284]" />
                 <input type="number" className={`${inputCls} pl-9`} {...register("price_per_hour", { valueAsNumber: true })} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">
+                  <label className="block text-sm font-semibold text-[#111111] mb-1.5">
                     <Clock className="inline h-3.5 w-3.5 mr-1" />Open
                   </label>
                   <input type="time" {...register("operating_hours_start")} className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">
+                  <label className="block text-sm font-semibold text-[#111111] mb-1.5">
                     <Clock className="inline h-3.5 w-3.5 mr-1" />Close
                   </label>
                   <input type="time" {...register("operating_hours_end")} className={inputCls} />
@@ -199,7 +199,7 @@ export default function EditTurfPage() {
             </div>
 
             <div className={cardCls}>
-              <h2 className="font-display font-bold text-[#1F2937]">Amenities</h2>
+              <h2 className="font-display font-bold text-[#111111]">Amenities</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {AMENITIES_LIST.map((a) => {
                   const sel = selectedAmenities.includes(a);
@@ -207,8 +207,8 @@ export default function EditTurfPage() {
                     <button key={a} type="button" onClick={() => toggleAmenity(a)}
                       className={`p-2.5 rounded-xl border-2 text-xs font-semibold transition-all ${
                         sel
-                          ? "bg-[#0B3D2E]/8 border-[#0B3D2E]/25 text-[#0B3D2E]"
-                          : "border-gray-200 text-[#6B7280] bg-white hover:border-[#0B3D2E]/20"
+                          ? "bg-[#0D4D36]/8 border-[#0D4D36]/25 text-[#0D4D36]"
+                          : "border-[#E7E2DA] text-[#5F5F5F] bg-white hover:border-[#0D4D36]/20"
                       }`}
                     >
                       {a}
@@ -219,7 +219,7 @@ export default function EditTurfPage() {
             </div>
 
             <div className={cardCls}>
-              <h2 className="font-display font-bold text-[#1F2937]">Images</h2>
+              <h2 className="font-display font-bold text-[#111111]">Images</h2>
               {imageUrls.map((url, i) => (
                 <div key={i} className="flex gap-2">
                   <input
@@ -230,14 +230,14 @@ export default function EditTurfPage() {
                   />
                   {i > 0 && (
                     <button type="button" onClick={() => setImageUrls(imageUrls.filter((_, j) => j !== i))}
-                      className="p-2 text-[#9CA3AF] hover:text-red-500">
+                      className="p-2 text-[#9E9284] hover:text-red-500">
                       <X className="h-4 w-4" />
                     </button>
                   )}
                 </div>
               ))}
               <Button type="button" variant="outline" size="sm"
-                onClick={() => setImageUrls([...imageUrls, ""])} className="gap-1 rounded-xl border-gray-200">
+                onClick={() => setImageUrls([...imageUrls, ""])} className="gap-1 rounded-xl border-[#E7E2DA]">
                 <Plus className="h-4 w-4" /> Add Image
               </Button>
             </div>

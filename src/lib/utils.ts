@@ -75,7 +75,7 @@ export const SPORTS_CONFIG: Record<
   Sport,
   { label: string; emoji: string; color: string; selectedBg: string; selectedText: string }
 > = {
-  football:   { label: "Football",   emoji: "⚽", color: "emerald", selectedBg: "#0B3D2E", selectedText: "#FAF7F0" },
+  football:   { label: "Football",   emoji: "⚽", color: "emerald", selectedBg: "#0D4D36", selectedText: "#F4F1EB" },
   cricket:    { label: "Cricket",    emoji: "🏏", color: "blue",    selectedBg: "#1D4ED8", selectedText: "#FFFFFF" },
   badminton:  { label: "Badminton",  emoji: "🏸", color: "yellow",  selectedBg: "#B45309", selectedText: "#FFFFFF" },
   basketball: { label: "Basketball", emoji: "🏀", color: "orange",  selectedBg: "#C2410C", selectedText: "#FFFFFF" },

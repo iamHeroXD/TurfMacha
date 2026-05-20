@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -37,10 +37,10 @@ export default function AdminBookingsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-[#1F2937] flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-[#0B3D2E]" /> Bookings
+          <h1 className="text-2xl font-display font-bold text-[#111111] flex items-center gap-2">
+            <Calendar className="h-6 w-6 text-[#0D4D36]" /> Bookings
           </h1>
-          <p className="text-sm text-[#6B7280] mt-0.5">
+          <p className="text-sm text-[#5F5F5F] mt-0.5">
             {bookings.length} bookings · {formatPrice(totalRevenue)} confirmed revenue
           </p>
         </div>
@@ -60,9 +60,9 @@ export default function AdminBookingsPage() {
       {loading ? (
         <div className="space-y-2">{[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
       ) : bookings.length === 0 ? (
-        <div className="py-16 text-center rounded-2xl border border-gray-100 bg-white">
+        <div className="py-16 text-center rounded-2xl border border-[#E7E2DA] bg-white">
           <Calendar className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-          <p className="text-[#6B7280] text-sm">No bookings found</p>
+          <p className="text-[#5F5F5F] text-sm">No bookings found</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -72,16 +72,16 @@ export default function AdminBookingsPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.015 }}
-              className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white shadow-sm"
+              className="flex items-center gap-3 p-3 rounded-xl border border-[#E7E2DA] bg-white shadow-sm"
             >
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-[#1F2937] text-sm truncate">{b.user?.full_name ?? "Unknown"}</p>
-                <p className="text-xs text-[#9CA3AF] truncate">
+                <p className="font-medium text-[#111111] text-sm truncate">{b.user?.full_name ?? "Unknown"}</p>
+                <p className="text-xs text-[#9E9284] truncate">
                   {b.turf?.name} · {format(new Date(b.slot_date), "d MMM yyyy")} · {b.start_time}
                 </p>
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
-                <p className="text-sm font-bold text-[#0B3D2E]">{formatPrice(b.total_price)}</p>
+                <p className="text-sm font-bold text-[#0D4D36]">{formatPrice(b.total_price)}</p>
                 <Badge
                   variant={b.status === "confirmed" ? "success" : b.status === "cancelled" ? "destructive" : "warning"}
                   className="text-[10px]"

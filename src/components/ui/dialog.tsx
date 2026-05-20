@@ -17,7 +17,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/60",
+      "fixed inset-0 z-50 bg-black/40 backdrop-blur-sm",
       "data-[state=open]:animate-in data-[state=closed]:animate-out",
       "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
@@ -37,19 +37,19 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed left-[50%] top-[50%] z-50 w-full max-w-md translate-x-[-50%] translate-y-[-50%]",
-        "bg-[#111111] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/50",
+        "bg-white border border-[#E7E2DA] rounded-2xl shadow-2xl shadow-black/10",
         "duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
         "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
-        "text-white max-h-[90vh] overflow-hidden flex flex-col",
+        "text-[#111111] max-h-[90vh] overflow-hidden flex flex-col",
         className
       )}
       {...props}
     >
       {children}
-      <DialogClose className="absolute right-4 top-4 rounded-md p-1 text-white/40 hover:text-white transition-colors">
+      <DialogClose className="absolute right-4 top-4 rounded-lg p-1.5 text-[#9E9284] hover:text-[#111111] hover:bg-[#F4F1EB] transition-colors">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogClose>
@@ -74,7 +74,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-base font-semibold text-white", className)}
+    className={cn("text-base font-semibold text-[#111111]", className)}
     {...props}
   />
 ));
@@ -86,7 +86,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-white/50", className)}
+    className={cn("text-sm text-[#5F5F5F]", className)}
     {...props}
   />
 ));
