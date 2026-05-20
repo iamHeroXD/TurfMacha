@@ -34,26 +34,26 @@ export default function FavoritesPage() {
     };
 
     fetchFavorites();
-  }, [user]);
+  }, [user, router]);
 
   return (
-    <div className="min-h-screen pt-14 pb-24 md:pb-8 px-4">
+    <div className="min-h-screen bg-[#FAF7F0] pt-28 pb-24 md:pb-8 px-4">
       <div className="max-w-4xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-            <Heart className="h-6 w-6 text-red-400" />
+          <h1 className="text-2xl font-display font-bold text-[#1F2937] mb-6 flex items-center gap-2">
+            <Heart className="h-6 w-6 text-red-400 fill-red-400" />
             Saved Turfs
           </h1>
 
           {loading ? (
             <TurfGridSkeleton />
           ) : turfs.length === 0 ? (
-            <div className="glass-card p-12 text-center">
+            <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-sm">
               <div className="text-5xl mb-4">❤️</div>
-              <p className="text-white/60 mb-2">No saved turfs yet</p>
-              <p className="text-white/40 text-sm mb-6">Tap the heart on any turf to save it</p>
+              <p className="text-[#6B7280] mb-2 font-medium">No saved turfs yet</p>
+              <p className="text-[#9CA3AF] text-sm mb-6">Tap the heart on any turf to save it here</p>
               <Link href="/turfs">
-                <Button>Explore Turfs</Button>
+                <Button className="bg-[#0B3D2E] hover:bg-[#0B3D2E]/90">Explore Turfs</Button>
               </Link>
             </div>
           ) : (

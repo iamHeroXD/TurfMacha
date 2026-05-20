@@ -36,12 +36,13 @@ export default function OwnerTurfsPage() {
   useEffect(() => {
     if (!user) { router.push("/login"); return; }
     fetchTurfs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const toggleActive = async (turf: Turf) => {
     const supabase = createClient();
     await supabase.from("turfs").update({ is_active: !turf.is_active }).eq("id", turf.id);
-    setTurfs(turfs.map((t) => (t.id === turf.id ? { ...t, is_active: !t.is_active } : t)));
+    setTurfs(turfs.map((t) => (t.id === turf.id ? { ...t, is_active: !turf.is_active } : t)));
     toast({ title: turf.is_active ? "Turf deactivated" : "Turf activated" });
   };
 
@@ -56,14 +57,20 @@ export default function OwnerTurfsPage() {
   };
 
   return (
-    <div className="min-h-screen pt-14 pb-24 md:pb-8 px-4">
+    <div className="min-h-screen bg-[#FAF7F0] pt-28 pb-24 md:pb-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-white">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-2xl font-display font-bold text-[#1F2937]"
+          >
             My Turfs
           </motion.h1>
           <Link href="/dashboard/owner/turfs/new">
-            <Button className="gap-2"><Plus className="h-4 w-4" /> Add Turf</Button>
+            <Button className="gap-2 bg-[#0B3D2E] hover:bg-[#0B3D2E]/90">
+              <Plus className="h-4 w-4" /> Add Turf
+            </Button>
           </Link>
         </div>
 
@@ -72,12 +79,14 @@ export default function OwnerTurfsPage() {
             {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)}
           </div>
         ) : turfs.length === 0 ? (
-          <div className="glass-card p-12 text-center">
-            <Building2 className="h-16 w-16 text-white/20 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">No turfs yet</h3>
-            <p className="text-white/40 text-sm mb-6">Add your first turf to start getting bookings</p>
+          <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-sm">
+            <Building2 className="h-16 w-16 text-gray-200 mx-auto mb-4" />
+            <h3 className="text-lg font-display font-semibold text-[#1F2937] mb-2">No turfs yet</h3>
+            <p className="text-[#6B7280] text-sm mb-6">Add your first turf to start getting bookings</p>
             <Link href="/dashboard/owner/turfs/new">
-              <Button className="gap-2"><Plus className="h-4 w-4" /> Add Turf</Button>
+              <Button className="gap-2 bg-[#0B3D2E] hover:bg-[#0B3D2E]/90">
+                <Plus className="h-4 w-4" /> Add Turf
+              </Button>
             </Link>
           </div>
         ) : (
@@ -88,7 +97,7 @@ export default function OwnerTurfsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="glass-card p-4 flex items-center gap-4"
+                className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4 shadow-sm"
               >
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
                   <Image
@@ -101,13 +110,13 @@ export default function OwnerTurfsPage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-white truncate">{turf.name}</h3>
+                    <h3 className="font-semibold text-[#1F2937] truncate">{turf.name}</h3>
                     <Badge variant={turf.is_active ? "success" : "secondary"}>
                       {turf.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </div>
-                  <p className="text-xs text-white/40 mt-1">{turf.city}, {turf.state}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-white/50">
+                  <p className="text-xs text-[#9CA3AF] mt-1">{turf.city}, {turf.state}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-[#6B7280]">
                     <span>{formatPrice(turf.price_per_hour)}/hr</span>
                     <span>·</span>
                     <span>⭐ {turf.rating?.toFixed(1) || "New"}</span>
@@ -128,14 +137,20 @@ export default function OwnerTurfsPage() {
                         <Edit className="h-3.5 w-3.5" />
                       </Button>
                     </Link>
-                    <Button size="icon-sm" variant="ghost" className="text-red-400" onClick={() => deleteTurf(turf.id)} title="Delete">
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => deleteTurf(turf.id)}
+                      title="Delete"
+                    >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                   <Button
                     size="sm"
                     variant={turf.is_active ? "outline" : "default"}
-                    className="text-xs h-7"
+                    className={`text-xs h-7 ${!turf.is_active ? "bg-[#0B3D2E] hover:bg-[#0B3D2E]/90" : ""}`}
                     onClick={() => toggleActive(turf)}
                   >
                     {turf.is_active ? "Deactivate" : "Activate"}

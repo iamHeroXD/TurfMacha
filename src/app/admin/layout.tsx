@@ -17,58 +17,57 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, initialized } = useAuthStore();
   const pathname = usePathname();
 
-  // Show spinner while auth state is being resolved — prevents "access required" flash
   if (!initialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
-        <Loader2 className="h-6 w-6 text-white/30 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F0]">
+        <Loader2 className="h-6 w-6 text-[#0B3D2E]/40 animate-spin" />
       </div>
     );
   }
 
-  // Auth confirmed but not admin — show access denied
   if (!user || user.role !== "admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F0]">
         <div className="text-center">
-          <ShieldAlert className="h-10 w-10 text-white/20 mx-auto mb-3" />
-          <p className="text-white/40 text-sm">Admin access required</p>
-          <p className="text-white/25 text-xs mt-1">Log in with an admin account to continue</p>
+          <ShieldAlert className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+          <p className="text-[#6B7280] text-sm font-medium">Admin access required</p>
+          <p className="text-[#9CA3AF] text-xs mt-1">Log in with an admin account to continue</p>
         </div>
       </div>
     );
   }
 
-  // Confirmed admin — render panel
   return (
-    <div className="min-h-screen pt-14 bg-[#0a0a0a]">
+    <div className="min-h-screen pt-14 bg-[#FAF7F0]">
       <div className="max-w-6xl mx-auto px-4 py-6 flex gap-6">
         {/* Sidebar */}
         <aside className="hidden md:flex flex-col gap-1 w-48 shrink-0">
-          <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wider px-3 mb-2">Admin Panel</p>
-          {NAV.map(({ href, label, icon: Icon }) => {
-            const active = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
-                  active
-                    ? "bg-brand-400/10 text-brand-400 border border-brand-400/20"
-                    : "text-white/45 hover:text-white hover:bg-white/[0.05]"
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                {label}
-              </Link>
-            );
-          })}
+          <div className="bg-white rounded-2xl border border-gray-100 p-2 shadow-sm">
+            <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider px-3 py-2">Admin Panel</p>
+            {NAV.map(({ href, label, icon: Icon }) => {
+              const active = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors",
+                    active
+                      ? "bg-[#0B3D2E] text-white font-semibold"
+                      : "text-[#6B7280] hover:text-[#1F2937] hover:bg-gray-50"
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
         </aside>
 
         {/* Mobile tab bar */}
         <div className="md:hidden fixed bottom-20 inset-x-0 z-40 px-4">
-          <div className="bg-[#161616] border border-white/[0.09] rounded-xl p-1 flex gap-1">
+          <div className="bg-white border border-gray-100 rounded-xl shadow-lg p-1 flex gap-1">
             {NAV.map(({ href, label, icon: Icon }) => {
               const active = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
               return (
@@ -77,7 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={href}
                   className={cn(
                     "flex-1 flex flex-col items-center gap-0.5 py-2 rounded-lg text-[10px] transition-colors",
-                    active ? "bg-brand-400/10 text-brand-400" : "text-white/40"
+                    active ? "bg-[#0B3D2E] text-white" : "text-[#9CA3AF]"
                   )}
                 >
                   <Icon className="h-4 w-4" />

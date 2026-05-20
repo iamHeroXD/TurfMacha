@@ -58,10 +58,10 @@ export default function AdminTurfsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Building2 className="h-6 w-6 text-brand-400" /> Turfs
+        <h1 className="text-2xl font-display font-bold text-[#1F2937] flex items-center gap-2">
+          <Building2 className="h-6 w-6 text-[#0B3D2E]" /> Turfs
         </h1>
-        <p className="text-sm text-white/40 mt-0.5">{turfs.length} listings</p>
+        <p className="text-sm text-[#6B7280] mt-0.5">{turfs.length} listings</p>
       </div>
 
       {loading ? (
@@ -74,7 +74,7 @@ export default function AdminTurfsPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.02 }}
-              className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.07] bg-[#111111]"
+              className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white shadow-sm"
             >
               <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0">
                 <Image
@@ -86,23 +86,42 @@ export default function AdminTurfsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-white text-sm truncate">{t.name}</p>
+                  <p className="font-medium text-[#1F2937] text-sm truncate">{t.name}</p>
                   {t.is_featured && <Badge variant="success" className="text-[10px]">Featured</Badge>}
                   {!t.is_active && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
                 </div>
-                <p className="text-xs text-white/35">{t.city} · {formatPrice(t.price_per_hour)}/hr · <Star className="inline h-3 w-3" /> {t.rating || "New"}</p>
+                <p className="text-xs text-[#9CA3AF]">
+                  {t.city} · {formatPrice(t.price_per_hour)}/hr · <Star className="inline h-3 w-3" /> {t.rating || "New"}
+                </p>
               </div>
               <div className="flex gap-1 shrink-0">
                 <Link href={`/turfs/${t.id}`}>
                   <Button size="icon-sm" variant="ghost" title="View"><Eye className="h-3.5 w-3.5" /></Button>
                 </Link>
-                <Button size="icon-sm" variant="ghost" onClick={() => toggleFeatured(t)} title={t.is_featured ? "Unfeature" : "Feature"} className={t.is_featured ? "text-amber-400" : "text-white/40"}>
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={() => toggleFeatured(t)}
+                  title={t.is_featured ? "Unfeature" : "Feature"}
+                  className={t.is_featured ? "text-amber-500" : "text-[#6B7280]"}
+                >
                   ★
                 </Button>
-                <Button size="icon-sm" variant={t.is_active ? "outline" : "default"} className="text-xs h-7 px-2" onClick={() => toggleActive(t)}>
+                <Button
+                  size="icon-sm"
+                  variant={t.is_active ? "outline" : "default"}
+                  className="text-xs h-7 px-2"
+                  onClick={() => toggleActive(t)}
+                >
                   {t.is_active ? "Off" : "On"}
                 </Button>
-                <Button size="icon-sm" variant="ghost" className="text-red-400" onClick={() => deleteTurf(t.id)} title="Delete">
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                  onClick={() => deleteTurf(t.id)}
+                  title="Delete"
+                >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>

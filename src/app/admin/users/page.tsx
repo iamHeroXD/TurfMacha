@@ -60,7 +60,6 @@ export default function AdminUsersPage() {
   const deleteUser = async (u: User) => {
     if (!confirm(`Delete ${u.full_name}? This removes their account and all data permanently.`)) return;
 
-    // Call server API route which uses service role key to delete from auth.users (cascades to public.users)
     const res = await fetch("/api/admin/delete-user", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -84,17 +83,17 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Users className="h-6 w-6 text-brand-400" /> Users
+        <h1 className="text-2xl font-display font-bold text-[#1F2937] flex items-center gap-2">
+          <Users className="h-6 w-6 text-[#0B3D2E]" /> Users
         </h1>
-        <p className="text-sm text-white/40 mt-0.5">{users.length} total accounts</p>
+        <p className="text-sm text-[#6B7280] mt-0.5">{users.length} total accounts</p>
       </div>
 
       {loading ? (
         <div className="space-y-2">{[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
       ) : users.length === 0 ? (
-        <div className="py-16 text-center rounded-xl border border-white/[0.07]">
-          <p className="text-white/40 text-sm">No users found</p>
+        <div className="py-16 text-center rounded-2xl border border-gray-100 bg-white">
+          <p className="text-[#6B7280] text-sm">No users found</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -104,19 +103,19 @@ export default function AdminUsersPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.02 }}
-              className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.07] bg-[#111111]"
+              className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white shadow-sm"
             >
-              <div className="w-9 h-9 rounded-full bg-white/[0.05] flex items-center justify-center shrink-0 font-medium text-white/50 text-sm">
+              <div className="w-9 h-9 rounded-full bg-[#0B3D2E]/8 flex items-center justify-center shrink-0 font-bold text-[#0B3D2E] text-sm">
                 {u.full_name?.[0] ?? "?"}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-white text-sm truncate">{u.full_name}</p>
+                  <p className="font-medium text-[#1F2937] text-sm truncate">{u.full_name}</p>
                   {u.is_suspended && (
                     <Badge variant="destructive" className="text-[10px]">Suspended</Badge>
                   )}
                 </div>
-                <p className="text-xs text-white/35 truncate">
+                <p className="text-xs text-[#9CA3AF] truncate">
                   {u.email} · {format(new Date(u.created_at), "d MMM yyyy")}
                 </p>
               </div>
@@ -137,13 +136,13 @@ export default function AdminUsersPage() {
                 title={u.is_suspended ? "Unsuspend" : "Suspend"}
               >
                 {u.is_suspended
-                  ? <ShieldCheck className="h-3.5 w-3.5 text-brand-400" />
-                  : <ShieldOff className="h-3.5 w-3.5 text-amber-400" />}
+                  ? <ShieldCheck className="h-3.5 w-3.5 text-[#0B3D2E]" />
+                  : <ShieldOff className="h-3.5 w-3.5 text-amber-500" />}
               </Button>
               <Button
                 size="icon-sm"
                 variant="ghost"
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                className="text-red-500 hover:text-red-600 hover:bg-red-50"
                 onClick={() => deleteUser(u)}
                 title="Delete permanently"
               >

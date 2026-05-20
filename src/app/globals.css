@@ -6,8 +6,7 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────
-   CSS Custom Properties — Light/Warm Theme (DEFAULT)
-   Dark mode via html.dark class (next-themes)
+   CSS Custom Properties — Light/Warm Theme
 ───────────────────────────────────────────── */
 :root {
   /* Radix / shadcn design tokens — Light (turf palette) */
@@ -32,72 +31,10 @@
   --ring:                162 70% 14%;     /* turf-emerald */
   --radius:               0.75rem;
 
-  /* Raw channel values (for rgba opacity tricks) */
-  --bg-base:       250 247 240;   /* #FAF7F0 */
-  --bg-surface:    255 255 255;
-  --bg-elevated:   243 240 234;
-  --bg-overlay:    250 247 240;
-  --bg-input-raw:  255 255 255;
-  --bg-input-a:    1;
-  --border-raw:     15  23  42;   /* dark, for subtle transparent borders on light bg */
-  --border-a:       0.08;
-  --border-a-md:    0.12;
-  --border-a-lg:    0.18;
-  --text-primary:   31  41  55;   /* #1F2937 */
-  --text-50:        31  41  55;
-  --text-50-a:      1;
-  --text-40-a:      0.55;
-  --text-35-a:      0.45;
-  --text-30-a:      0.38;
-  --text-25-a:      0.28;
-
   --dur-fast:  150ms;
   --dur-base:  200ms;
   --dur-slow:  300ms;
   --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* ── Dark theme overrides ── */
-html.dark {
-  color-scheme: dark;
-
-  --background:      0  0%  4%;
-  --foreground:      0  0% 98%;
-  --card:            0  0%  7%;
-  --card-foreground: 0  0% 98%;
-  --popover:         0  0%  7%;
-  --popover-foreground: 0 0% 98%;
-  --primary:        83 78% 55%;    /* turf-lime as dark-mode primary (visible on dark) */
-  --primary-foreground: 162 70% 14%;
-  --secondary:       0  0% 12%;
-  --secondary-foreground: 0 0% 98%;
-  --muted:           0  0% 12%;
-  --muted-foreground: 0 0% 55%;
-  --accent:         83 78% 55%;
-  --accent-foreground: 162 70% 14%;
-  --destructive:     0 72% 51%;
-  --destructive-foreground: 0 0% 98%;
-  --border:          0  0% 11%;
-  --input:           0  0% 11%;
-  --ring:           83 78% 55%;
-
-  --bg-base:       10  10  10;
-  --bg-surface:    17  17  17;
-  --bg-elevated:   22  22  22;
-  --bg-overlay:    13  13  13;
-  --bg-input-raw:  255 255 255;
-  --bg-input-a:    0.04;
-  --border-raw:    255 255 255;
-  --border-a:      0.07;
-  --border-a-md:   0.10;
-  --border-a-lg:   0.14;
-  --text-primary:  255 255 255;
-  --text-50:       255 255 255;
-  --text-50-a:     1;
-  --text-40-a:     0.5;
-  --text-35-a:     0.35;
-  --text-30-a:     0.3;
-  --text-25-a:     0.25;
 }
 
 /* ─────────────────────────────────────────────
@@ -117,83 +54,24 @@ html.dark {
     text-rendering: optimizeLegibility;
   }
 
-  /* Display font for all headings */
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight;
   }
 
-  /* Scrollbar */
   * { scrollbar-width: thin; scrollbar-color: rgba(127,127,127,0.15) transparent; }
   ::-webkit-scrollbar { width: 3px; height: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(127,127,127,0.15); border-radius: 99px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(127,127,127,0.3); }
 
-  /* Selection — turf-lime */
   ::selection { background: rgba(163,230,53,0.28); color: #0B3D2E; }
 
-  /* Focus ring — turf-emerald */
   :focus-visible {
     outline: 2px solid rgba(11, 61, 46, 0.45);
     outline-offset: 2px;
     border-radius: 6px;
   }
-  html.dark :focus-visible {
-    outline-color: rgba(163, 230, 53, 0.55);
-  }
 }
-
-/* ─────────────────────────────────────────────
-   Compatibility layer — maps old dark-hardcoded
-   classes to light-mode equivalents for any
-   components not yet redesigned
-───────────────────────────────────────────── */
-html.light .bg-\[\#0a0a0a\]  { background-color: rgb(var(--bg-base))     !important; }
-html.light .bg-\[\#0d0d0d\]  { background-color: rgb(var(--bg-overlay))  !important; }
-html.light .bg-\[\#0e0e0e\]  { background-color: rgb(var(--bg-base))     !important; }
-html.light .bg-\[\#111111\]  { background-color: rgb(var(--bg-surface))  !important; }
-html.light .bg-\[\#141414\]  { background-color: rgb(var(--bg-surface))  !important; }
-html.light .bg-\[\#161616\]  { background-color: rgb(var(--bg-elevated)) !important; }
-html.light .bg-\[\#1a1a1a\]  { background-color: rgb(var(--bg-elevated)) !important; }
-html.light .bg-\[\#181818\]  { background-color: rgb(var(--bg-elevated)) !important; }
-html.light .bg-\[\#222\]     { background-color: rgb(var(--bg-elevated)) !important; }
-
-html.light .bg-white\/\[0\.03\] { background-color: rgba(var(--border-raw), 0.03) !important; }
-html.light .bg-white\/\[0\.04\] { background-color: rgba(var(--border-raw), 0.04) !important; }
-html.light .bg-white\/\[0\.05\] { background-color: rgba(var(--border-raw), 0.05) !important; }
-html.light .bg-white\/\[0\.06\] { background-color: rgba(var(--border-raw), 0.06) !important; }
-html.light .bg-white\/\[0\.07\] { background-color: rgba(var(--border-raw), 0.06) !important; }
-html.light .bg-white\/\[0\.08\] { background-color: rgba(var(--border-raw), 0.07) !important; }
-html.light .bg-white\/\[0\.09\] { background-color: rgba(var(--border-raw), 0.07) !important; }
-html.light .bg-white\/\[0\.10\] { background-color: rgba(var(--border-raw), 0.08) !important; }
-html.light .bg-\[\#0a0a0a\]\/97 { background-color: rgba(var(--bg-base), 0.97)    !important; }
-html.light .bg-\[\#0e0e0e\]\/97 { background-color: rgba(var(--bg-overlay), 0.97) !important; }
-
-html.light .text-white                  { color: rgb(var(--text-primary)) !important; }
-html.light .text-white\/10              { color: rgba(var(--text-50), 0.10) !important; }
-html.light .text-white\/20              { color: rgba(var(--text-50), 0.20) !important; }
-html.light .text-white\/25              { color: rgba(var(--text-50), var(--text-25-a)) !important; }
-html.light .text-white\/30              { color: rgba(var(--text-50), var(--text-30-a)) !important; }
-html.light .text-white\/35              { color: rgba(var(--text-50), var(--text-35-a)) !important; }
-html.light .text-white\/40              { color: rgba(var(--text-50), 0.45) !important; }
-html.light .text-white\/45              { color: rgba(var(--text-50), 0.50) !important; }
-html.light .text-white\/50              { color: rgba(var(--text-50), var(--text-40-a)) !important; }
-html.light .text-white\/55              { color: rgba(var(--text-50), 0.58) !important; }
-html.light .text-white\/60              { color: rgba(var(--text-50), 0.62) !important; }
-html.light .text-white\/65              { color: rgba(var(--text-50), 0.66) !important; }
-html.light .text-white\/70              { color: rgba(var(--text-50), 0.72) !important; }
-html.light .text-white\/80              { color: rgba(var(--text-50), 0.82) !important; }
-html.light .text-white\/90              { color: rgba(var(--text-50), 0.90) !important; }
-
-html.light .border-white\/\[0\.06\]    { border-color: rgba(var(--border-raw), var(--border-a)) !important; }
-html.light .border-white\/\[0\.07\]    { border-color: rgba(var(--border-raw), var(--border-a)) !important; }
-html.light .border-white\/\[0\.08\]    { border-color: rgba(var(--border-raw), var(--border-a)) !important; }
-html.light .border-white\/\[0\.09\]    { border-color: rgba(var(--border-raw), var(--border-a-md)) !important; }
-html.light .border-white\/\[0\.1\]     { border-color: rgba(var(--border-raw), var(--border-a-md)) !important; }
-html.light .border-white\/\[0\.12\]    { border-color: rgba(var(--border-raw), var(--border-a-md)) !important; }
-html.light .border-white\/\[0\.14\]    { border-color: rgba(var(--border-raw), var(--border-a-lg)) !important; }
-html.light .border-white\/\[0\.15\]    { border-color: rgba(var(--border-raw), var(--border-a-lg)) !important; }
-html.light .border-white\/10           { border-color: rgba(var(--border-raw), 0.12) !important; }
 
 /* ─────────────────────────────────────────────
    Keyframes
@@ -315,7 +193,6 @@ html.light .border-white\/10           { border-color: rgba(var(--border-raw), 0
     @apply focus:outline-none focus:ring-2 focus:ring-[#0B3D2E]/20 focus:border-[#0B3D2E]/40;
     transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   }
-  html.dark .input { @apply focus:ring-[#A3E635]/25 focus:border-[#A3E635]/35; }
 
   .divider { border-top: 1px solid hsl(var(--border)); }
 }
@@ -331,8 +208,7 @@ html.light .border-white\/10           { border-color: rgba(var(--border-raw), 0
    Leaflet
 ───────────────────────────────────────────── */
 .leaflet-container { background: hsl(var(--card)) !important; border-radius: 1rem; }
-html.dark .leaflet-tile { filter: brightness(0.58) saturate(0.45) hue-rotate(200deg); }
-html:not(.dark) .leaflet-tile { filter: saturate(0.85) brightness(0.96); }
+.leaflet-tile { filter: saturate(0.85) brightness(0.96); }
 .leaflet-control-attribution {
   background: hsl(var(--card) / 0.8) !important;
   color: hsl(var(--muted-foreground)) !important;
@@ -351,10 +227,3 @@ html:not(.dark) .leaflet-tile { filter: saturate(0.85) brightness(0.96); }
   box-shadow: 0 16px 40px rgba(0,0,0,0.10) !important;
 }
 .leaflet-popup-tip { background: hsl(var(--card)) !important; }
-
-/* ─────────────────────────────────────────────
-   Additional light-mode surface fixes
-───────────────────────────────────────────── */
-html.light .bg-\[\#0a0a0a\]\/97 { background-color: rgba(250, 247, 240, 0.97) !important; }
-html.light .supports-\[backdrop-filter\]\:backdrop-blur-md { backdrop-filter: blur(12px); }
-html.light [data-radix-popper-content-wrapper] { --background: 0 0% 100%; }

@@ -8,7 +8,6 @@ import { Menu, X, LogOut, User, LayoutDashboard, ChevronDown, MapPin, LogIn } fr
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationCenter } from "@/components/layout/NotificationCenter";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
 import { getInitials, cn } from "@/lib/utils";
@@ -113,7 +112,6 @@ export function Navbar() {
 
             {/* Right */}
             <div className="flex items-center gap-2 shrink-0">
-              <ThemeToggle />
               {user && <NotificationCenter />}
 
               {user ? (
