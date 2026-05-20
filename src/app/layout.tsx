@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
@@ -12,10 +12,10 @@ import { PWAUpdateBanner } from "@/components/layout/PWAUpdateBanner";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 
-const inter = Inter({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-inter",
+  variable: "--font-jakarta",
   display: "swap",
 });
 
@@ -77,10 +77,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F4F1EB" },
     { media: "(prefers-color-scheme: dark)",  color: "#0a0a0a" },
-    { media: "(prefers-color-scheme: light)", color: "#f5f7fa" },
   ],
-  colorScheme: "dark light",
+  colorScheme: "light dark",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -96,15 +96,15 @@ export default function RootLayout({
   return (
     // ThemeProvider adds "dark" or "light" class — suppressHydrationWarning prevents
     // mismatch between server-rendered class and client-resolved theme
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={jakarta.variable} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
-      <body className={`${inter.className} antialiased min-h-screen`}>
+      <body className={`${jakarta.className} antialiased min-h-screen`}>
         <ThemeProvider>
           <AuthProvider>
             <Suspense fallback={null}>

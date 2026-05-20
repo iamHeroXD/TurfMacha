@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
@@ -7,41 +7,37 @@ import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold",
     "select-none cursor-pointer",
-    /* transitions — include transform for press effect */
     "transition-all duration-150 ease-out",
-    /* press */
     "active:scale-[0.96]",
-    /* keyboard focus */
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0a0a0a]",
-    /* disabled */
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     "disabled:pointer-events-none disabled:opacity-40",
   ].join(" "),
   {
     variants: {
       variant: {
         default:
-          "bg-brand-400 text-black font-semibold hover:bg-brand-400 hover:shadow-[0_0_20px_rgba(101,228,42,0.25)]",
+          "bg-[#0D4D36] text-[#F4F1EB] hover:bg-[#0A3D2B] shadow-sm hover:shadow-md",
         destructive:
-          "bg-transparent text-red-400 border border-red-500/20 hover:bg-red-500/[0.08] hover:border-red-500/30",
+          "bg-transparent text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300",
         outline:
-          "border border-white/[0.09] bg-transparent text-white/70 hover:border-white/[0.18] hover:text-white hover:bg-white/[0.03]",
+          "border border-border bg-transparent text-foreground hover:bg-secondary hover:border-border/80",
         secondary:
-          "bg-white/[0.06] text-white hover:bg-white/[0.10]",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
-          "text-white/55 hover:text-white hover:bg-white/[0.06]",
+          "text-muted-foreground hover:text-foreground hover:bg-secondary",
         link:
-          "text-brand-400 underline-offset-4 hover:underline p-0 h-auto",
+          "text-[#0D4D36] underline-offset-4 hover:underline p-0 h-auto",
         glass:
-          "bg-white/[0.04] border border-white/[0.07] text-white hover:bg-white/[0.08] hover:border-white/[0.12]",
+          "bg-card/70 border border-border text-foreground hover:bg-card backdrop-blur-sm",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm:      "h-8 px-3 text-xs",
-        lg:      "h-11 px-7 text-base",
-        icon:    "h-9 w-9",
-        "icon-sm": "h-7 w-7",
+        default:   "h-10 px-5 py-2",
+        sm:        "h-8  px-3 text-xs",
+        lg:        "h-12 px-8 text-base",
+        icon:      "h-9  w-9",
+        "icon-sm": "h-7  w-7",
       },
     },
     defaultVariants: {

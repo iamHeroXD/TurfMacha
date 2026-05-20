@@ -16,10 +16,15 @@ import { Sport } from "@/types";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 
-const TurfMap = dynamic(() => import("@/components/map/TurfMap").then(m => ({ default: m.TurfMap })), {
-  ssr: false,
-  loading: () => <div className="h-[420px] rounded-xl bg-white/[0.04] animate-pulse" />,
-});
+const TurfMap = dynamic(
+  () => import("@/components/map/TurfMap").then((m) => ({ default: m.TurfMap })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[420px] rounded-2xl bg-[#E7E2DA] animate-pulse" />
+    ),
+  }
+);
 
 function TurfsContent() {
   const params = useSearchParams();
@@ -45,29 +50,31 @@ function TurfsContent() {
   const hasFilters = !!(sport || searchQuery);
 
   return (
-    <div className="min-h-screen pt-14">
+    <div className="min-h-screen bg-[#F4F1EB] pt-14">
       {/* Sticky filter bar */}
-      <div className="sticky top-14 z-30 bg-[#0a0a0a] border-b border-white/[0.07]">
-        <div className="max-w-6xl mx-auto px-4 py-3 space-y-3">
+      <div className="sticky top-14 z-30 bg-[#F4F1EB]/97 border-b border-[#E7E2DA] supports-[backdrop-filter]:backdrop-blur-md">
+        <div className="max-w-5xl mx-auto px-4 py-3.5 space-y-3">
 
-          {/* Row 1: title + view toggle */}
+          {/* Row 1 */}
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-base font-semibold text-white truncate">
+              <h1 className="text-base font-bold text-[#111111] truncate">
                 {sport ? `${sport[0].toUpperCase()}${sport.slice(1)} Turfs` : "All Turfs"}
                 {!loading && turfs.length > 0 && (
-                  <span className="text-white/30 text-sm font-normal ml-2">({turfs.length})</span>
+                  <span className="text-[#9E9284] text-sm font-normal ml-2">({turfs.length})</span>
                 )}
               </h1>
             </div>
-            <div className="flex items-center gap-1 bg-white/[0.04] rounded-lg border border-white/[0.07] p-0.5 shrink-0">
+            <div className="flex items-center gap-1 bg-white rounded-xl border-2 border-[#E7E2DA] p-0.5 shrink-0">
               {([["grid", LayoutGrid], ["map", Map]] as const).map(([v, Icon]) => (
                 <button
                   key={v}
                   onClick={() => setView(v)}
                   className={cn(
-                    "p-1.5 rounded-md transition-colors",
-                    view === v ? "bg-white/[0.09] text-white" : "text-white/35 hover:text-white/60"
+                    "p-1.5 rounded-lg transition-all duration-150",
+                    view === v
+                      ? "bg-[#0D4D36] text-white shadow-sm"
+                      : "text-[#9E9284] hover:text-[#5F5F5F]"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -84,19 +91,19 @@ function TurfsContent() {
 
           {/* Row 4: sort + clear */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div>
               {hasFilters && (
                 <button
                   onClick={() => { setSport(undefined); setSearchQuery(undefined); }}
-                  className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors border border-white/[0.07] rounded-lg px-2.5 py-1.5 hover:border-white/[0.14]"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[#5F5F5F] hover:text-[#111111] transition-colors border-2 border-[#E7E2DA] rounded-xl px-3 py-1.5 hover:border-[#C4BAB0] bg-white"
                 >
-                  <X className="h-3 w-3" /> Clear
+                  <X className="h-3 w-3" /> Clear filters
                 </button>
               )}
             </div>
             <Select value={sort} onValueChange={setSort}>
-              <SelectTrigger className="w-40 h-8 text-xs">
-                <SlidersHorizontal className="h-3 w-3 mr-1.5 text-white/30" />
+              <SelectTrigger className="w-40 h-8 text-xs bg-white border-2 border-[#E7E2DA] rounded-xl">
+                <SlidersHorizontal className="h-3 w-3 mr-1.5 text-[#9E9284]" />
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
               <SelectContent>
@@ -111,16 +118,18 @@ function TurfsContent() {
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-5xl mx-auto px-4 py-8">
         {view === "map" ? (
           <>
             <TurfMap
               turfs={sorted}
               center={latitude && longitude ? [latitude, longitude] : [12.9716, 77.5946]}
-              className="h-[420px] mb-6"
+              className="h-[420px] mb-8"
             />
-            {loading ? <TurfGridSkeleton /> : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {loading ? (
+              <TurfGridSkeleton />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {sorted.map((t, i) => <TurfCard key={t.id} turf={t} index={i} />)}
               </div>
             )}
@@ -129,17 +138,22 @@ function TurfsContent() {
           <TurfGridSkeleton />
         ) : sorted.length === 0 ? (
           <div className="py-28 text-center">
-            <p className="text-4xl mb-4">🏟️</p>
-            <p className="font-medium text-white/60 mb-1">No turfs found</p>
-            <p className="text-sm text-white/30 mb-6">Try adjusting your search or filters</p>
+            <p className="text-5xl mb-5">🏟️</p>
+            <p className="font-semibold text-[#5F5F5F] text-lg mb-1">No turfs found</p>
+            <p className="text-sm text-[#9E9284] mb-6">Try adjusting your search or filters</p>
             {hasFilters && (
-              <Button variant="outline" size="sm" onClick={() => { setSport(undefined); setSearchQuery(undefined); }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setSport(undefined); setSearchQuery(undefined); }}
+                className="rounded-xl"
+              >
                 Clear filters
               </Button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {sorted.map((t, i) => <TurfCard key={t.id} turf={t} index={i} />)}
           </div>
         )}
@@ -150,12 +164,16 @@ function TurfsContent() {
 
 export default function TurfsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen pt-14">
-        <div className="sticky top-14 z-30 bg-[#0a0a0a] border-b border-white/[0.07] h-36" />
-        <div className="max-w-6xl mx-auto px-4 py-6"><TurfGridSkeleton /></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F4F1EB] pt-14">
+          <div className="sticky top-14 z-30 bg-[#F4F1EB] border-b border-[#E7E2DA] h-40" />
+          <div className="max-w-5xl mx-auto px-4 py-8">
+            <TurfGridSkeleton />
+          </div>
+        </div>
+      }
+    >
       <TurfsContent />
     </Suspense>
   );

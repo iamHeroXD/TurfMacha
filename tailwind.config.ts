@@ -10,22 +10,22 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-jakarta)", "Plus Jakarta Sans", "system-ui", "sans-serif"],
         mono: ["ui-monospace", "JetBrains Mono", "monospace"],
       },
       colors: {
         brand: {
-          50:  "#f2fde4",
-          100: "#e1f9c3",
-          200: "#c4f288",
-          300: "#a0e84d",
-          400: "#65e42a",
-          500: "#4aca14",
-          600: "#38a10e",
-          700: "#2b7b0e",
-          800: "#25620f",
-          900: "#1f5110",
-          950: "#0e2d04",
+          50:  "#f0f9f4",
+          100: "#dceed8",
+          200: "#bde0b0",
+          300: "#c5e88d",
+          400: "#a6d96a",  /* accent sage green */
+          500: "#7cb85e",
+          600: "#4a8c42",
+          700: "#2a6c35",
+          800: "#0d4d36",  /* primary forest green */
+          900: "#063324",
+          950: "#021d14",
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",

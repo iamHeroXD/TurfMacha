@@ -17,7 +17,6 @@ interface BookingCardProps {
   onCancel?: () => void;
 }
 
-// A booking can be cancelled if it hasn't started yet and isn't already cancelled
 function isCancellable(booking: Booking): boolean {
   if (booking.status === "cancelled") return false;
   const slotStart = new Date(`${booking.slot_date}T${booking.start_time}`);
@@ -40,29 +39,24 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
       onCancel?.();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Could not cancel booking";
-      toast({
-        title: "Cancellation failed",
-        description: msg,
-        variant: "destructive",
-      });
+      toast({ title: "Cancellation failed", description: msg, variant: "destructive" });
     } finally {
       setCancelling(false);
     }
   };
 
-  const statusVariant: Record<string, "success" | "warning" | "destructive"> =
-    {
-      confirmed: "success",
-      pending: "warning",
-      cancelled: "destructive",
-    };
+  const statusVariant: Record<string, "success" | "warning" | "destructive"> = {
+    confirmed: "success",
+    pending: "warning",
+    cancelled: "destructive",
+  };
 
   const cancellable = isCancellable(booking);
 
   return (
-    <div className="flex gap-3 p-3 rounded-xl border border-white/[0.07] bg-[#111111] hover:border-white/[0.12] transition-colors">
+    <div className="flex gap-3 p-4 rounded-2xl border-2 border-[#E7E2DA] bg-white hover:border-[#C4BAB0] hover:shadow-md hover:shadow-black/5 transition-all duration-200">
       <Link href={`/turfs/${booking.turf_id}`} className="shrink-0">
-        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white/[0.04]">
+        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#F4F1EB]">
           <Image
             src={
               booking.turf?.images?.[0] ||
@@ -78,24 +72,21 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1">
           <Link href={`/turfs/${booking.turf_id}`}>
-            <h3 className="font-medium text-white text-sm hover:text-brand-400 transition-colors line-clamp-1">
+            <h3 className="font-semibold text-[#111111] text-sm hover:text-[#0D4D36] transition-colors line-clamp-1">
               {booking.turf?.name}
             </h3>
           </Link>
-          <Badge
-            variant={statusVariant[booking.status] ?? "warning"}
-            className="shrink-0 text-[10px]"
-          >
+          <Badge variant={statusVariant[booking.status] ?? "warning"} className="shrink-0 text-[10px]">
             {booking.status}
           </Badge>
         </div>
 
-        <div className="flex items-center gap-1 text-xs text-white/40 mb-2">
+        <div className="flex items-center gap-1 text-xs text-[#9E9284] mb-2">
           <MapPin className="h-3 w-3 shrink-0" />
           <span className="truncate">{booking.turf?.city}</span>
         </div>
 
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-white/40">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#9E9284]">
           <span className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
             {format(new Date(booking.slot_date), "d MMM yyyy")}
@@ -106,8 +97,8 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
           </span>
         </div>
 
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-sm font-semibold text-brand-400">
+        <div className="flex items-center justify-between mt-2.5">
+          <span className="text-sm font-bold text-[#0D4D36]">
             {formatPrice(booking.total_price)}
           </span>
           {cancellable && (

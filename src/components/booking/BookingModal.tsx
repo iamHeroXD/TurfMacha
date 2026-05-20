@@ -286,7 +286,7 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
         name: user?.full_name,
         email: user?.email,
       },
-      theme: { color: "#65e42a" },
+      theme: { color: "#0D4D36" },
       handler: async (paymentResponse: RazorpayPaymentResponse) => {
         setLoading(true);
         try {
@@ -328,9 +328,9 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-sm w-[calc(100vw-2rem)] mx-auto">
         {/* Header */}
-        <div className="px-5 pt-5 pb-4 border-b border-white/[0.07]">
+        <div className="px-5 pt-5 pb-4 border-b border-[#E7E2DA]">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-[#111111]">
               {step === 3 ? "Booking Confirmed" : `Book — ${turf.name}`}
             </DialogTitle>
           </DialogHeader>
@@ -342,20 +342,20 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                   <div key={label} className="flex items-center gap-2 flex-1 min-w-0">
                     <div
                       className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 border",
+                        "w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 border-2",
                         step > n
-                          ? "bg-brand-400 text-black border-brand-400"
+                          ? "bg-[#0D4D36] text-white border-[#0D4D36]"
                           : step === n
-                          ? "border-brand-400/50 text-brand-400 bg-brand-400/10"
-                          : "border-white/[0.09] text-white/30"
+                          ? "border-[#0D4D36]/50 text-[#0D4D36] bg-[#0D4D36]/8"
+                          : "border-[#E7E2DA] text-[#9E9284]"
                       )}
                     >
                       {step > n ? "✓" : n}
                     </div>
                     <span
                       className={cn(
-                        "text-xs truncate",
-                        step === n ? "text-white" : "text-white/30"
+                        "text-xs truncate font-medium",
+                        step === n ? "text-[#111111]" : "text-[#9E9284]"
                       )}
                     >
                       {label}
@@ -364,7 +364,7 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                       <div
                         className={cn(
                           "h-px flex-1 mx-1",
-                          step > 1 ? "bg-brand-400/30" : "bg-white/[0.07]"
+                          step > 1 ? "bg-[#0D4D36]/30" : "bg-[#E7E2DA]"
                         )}
                       />
                     )}
@@ -390,7 +390,7 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                 {/* Sport selector */}
                 {turf.sports.length > 1 && (
                   <div>
-                    <p className="text-xs text-white/40 uppercase tracking-wider mb-2">
+                    <p className="text-xs text-[#9E9284] uppercase tracking-wider mb-2 font-semibold">
                       Sport
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -399,10 +399,10 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                           key={s}
                           onClick={() => setSport(s)}
                           className={cn(
-                            "px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors",
+                            "px-3 py-1.5 rounded-xl border-2 text-xs font-semibold transition-all",
                             sport === s
-                              ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
-                              : "border-white/[0.09] text-white/50 hover:text-white hover:border-white/[0.15]"
+                              ? "bg-[#0D4D36]/8 border-[#0D4D36]/30 text-[#0D4D36]"
+                              : "border-[#E7E2DA] text-[#5F5F5F] hover:border-[#C4BAB0] hover:text-[#111111]"
                           )}
                         >
                           {SPORTS_CONFIG[s].emoji} {SPORTS_CONFIG[s].label}
@@ -414,28 +414,25 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
 
                 {/* Date selector */}
                 <div>
-                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <p className="text-xs text-[#9E9284] uppercase tracking-wider mb-2 flex items-center gap-1.5 font-semibold">
                     <Calendar className="h-3 w-3" /> Date
                   </p>
                   <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
                     {dates.map((d) => {
-                      const sel =
-                        format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
-                      const today =
-                        format(d, "yyyy-MM-dd") ===
-                        format(new Date(), "yyyy-MM-dd");
+                      const sel = format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
+                      const today = format(d, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
                       return (
                         <button
                           key={d.toISOString()}
                           onClick={() => onDateSelect(d)}
                           className={cn(
-                            "flex flex-col items-center px-3 py-2.5 rounded-lg border text-xs shrink-0 transition-colors",
+                            "flex flex-col items-center px-3 py-2.5 rounded-2xl border-2 text-xs shrink-0 transition-all",
                             sel
-                              ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
-                              : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
+                              ? "bg-[#0D4D36] border-[#0D4D36] text-white"
+                              : "border-[#E7E2DA] text-[#5F5F5F] hover:border-[#C4BAB0] bg-white"
                           )}
                         >
-                          <span className="text-[9px] uppercase font-semibold tracking-wider">
+                          <span className="text-[9px] uppercase font-bold tracking-wider opacity-70">
                             {format(d, "EEE")}
                           </span>
                           <span className="text-lg font-bold leading-none mt-0.5">
@@ -452,7 +449,7 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
 
                 {/* Time selector */}
                 <div>
-                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <p className="text-xs text-[#9E9284] uppercase tracking-wider mb-2 flex items-center gap-1.5 font-semibold">
                     <Clock className="h-3 w-3" /> Time
                   </p>
                   <div className="grid grid-cols-3 gap-1.5 max-h-36 overflow-y-auto">
@@ -467,12 +464,12 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                           onClick={() => !unavailable && setTime(s)}
                           disabled={unavailable}
                           className={cn(
-                            "py-2 rounded-lg border text-xs font-medium transition-colors",
+                            "py-2 rounded-xl border-2 text-xs font-semibold transition-all",
                             unavailable
-                              ? "border-white/[0.04] text-white/20 line-through cursor-not-allowed"
+                              ? "border-[#E7E2DA] text-[#C4BAB0] line-through cursor-not-allowed bg-[#F4F1EB]"
                               : isSel
-                              ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
-                              : "border-white/[0.09] text-white/60 hover:border-white/[0.15] hover:text-white"
+                              ? "bg-[#0D4D36] border-[#0D4D36] text-white"
+                              : "border-[#E7E2DA] text-[#5F5F5F] hover:border-[#C4BAB0] hover:text-[#111111] bg-white"
                           )}
                         >
                           {unavailable ? "—" : formatTime(s)}
@@ -484,7 +481,7 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
 
                 {/* Duration selector */}
                 <div>
-                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2">
+                  <p className="text-xs text-[#9E9284] uppercase tracking-wider mb-2 font-semibold">
                     Duration
                   </p>
                   <div className="grid grid-cols-3 gap-2">
@@ -493,10 +490,10 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                         key={d}
                         onClick={() => setDuration(d)}
                         className={cn(
-                          "py-2 rounded-lg border text-sm font-medium transition-colors",
+                          "py-2 rounded-xl border-2 text-sm font-semibold transition-all",
                           duration === d
-                            ? "bg-brand-400/10 border-brand-400/25 text-brand-400"
-                            : "border-white/[0.09] text-white/60 hover:border-white/[0.15]"
+                            ? "bg-[#0D4D36] border-[#0D4D36] text-white"
+                            : "border-[#E7E2DA] text-[#5F5F5F] hover:border-[#C4BAB0] bg-white"
                         )}
                       >
                         {d}h
@@ -525,32 +522,24 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
                 className="space-y-4"
               >
                 {/* Booking summary */}
-                <div className="rounded-xl border border-white/[0.07] bg-[#0e0e0e] p-4 space-y-2.5 text-sm">
+                <div className="rounded-2xl border-2 border-[#E7E2DA] bg-[#F4F1EB] p-4 space-y-2.5 text-sm">
                   {(
                     [
                       ["Turf", turf.name],
-                      [
-                        "Sport",
-                        `${SPORTS_CONFIG[sport].emoji} ${SPORTS_CONFIG[sport].label}`,
-                      ],
+                      ["Sport", `${SPORTS_CONFIG[sport].emoji} ${SPORTS_CONFIG[sport].label}`],
                       ["Date", format(date, "EEE, d MMM yyyy")],
                       ["Time", formatTime(time)],
-                      [
-                        "Duration",
-                        `${duration} hr${duration > 1 ? "s" : ""}`,
-                      ],
+                      ["Duration", `${duration} hr${duration > 1 ? "s" : ""}`],
                     ] as [string, string][]
                   ).map(([l, v]) => (
                     <div key={l} className="flex justify-between gap-3">
-                      <span className="text-white/40">{l}</span>
-                      <span className="text-white font-medium text-right">
-                        {v}
-                      </span>
+                      <span className="text-[#9E9284] font-medium">{l}</span>
+                      <span className="text-[#111111] font-semibold text-right">{v}</span>
                     </div>
                   ))}
-                  <div className="border-t border-white/[0.07] pt-2.5 flex justify-between">
-                    <span className="text-white font-semibold">Total</span>
-                    <span className="text-brand-400 font-bold text-base">
+                  <div className="border-t border-[#E7E2DA] pt-2.5 flex justify-between">
+                    <span className="text-[#111111] font-bold">Total</span>
+                    <span className="text-[#0D4D36] font-bold text-base">
                       {formatPrice(total)}
                     </span>
                   </div>
@@ -558,11 +547,11 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
 
                 {/* TurfCoins preview */}
                 {turf.rewards_enabled && (turf.coins_per_booking ?? 0) > 0 && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-400/5 border border-brand-400/15 text-xs">
-                    <Coins className="h-3.5 w-3.5 text-brand-400 shrink-0" />
-                    <span className="text-white/70">
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#0D4D36]/6 border border-[#0D4D36]/15 text-xs">
+                    <Coins className="h-3.5 w-3.5 text-[#0D4D36] shrink-0" />
+                    <span className="text-[#5F5F5F]">
                       You&apos;ll earn{" "}
-                      <span className="text-brand-400 font-semibold">
+                      <span className="text-[#0D4D36] font-bold">
                         {turf.coins_per_booking} TurfCoins
                       </span>{" "}
                       for this booking
@@ -572,16 +561,14 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
 
                 {/* Payment method badge */}
                 {RAZORPAY_ENABLED && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/5 border border-blue-500/15 text-xs">
-                    <CreditCard className="h-3.5 w-3.5 text-blue-400 shrink-0" />
-                    <span className="text-white/60">
-                      Pay via UPI, cards, net banking, or wallets
-                    </span>
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-xs">
+                    <CreditCard className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                    <span className="text-[#5F5F5F]">Pay via UPI, cards, net banking, or wallets</span>
                   </div>
                 )}
 
                 {error && (
-                  <p className="text-xs text-red-400 bg-red-500/8 border border-red-500/20 rounded-lg p-3">
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">
                     {error}
                   </p>
                 )}
@@ -609,43 +596,38 @@ export function BookingModal({ turf, open, onClose }: BookingModalProps) {
             {step === 3 && (
               <motion.div
                 key="s3"
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-4 space-y-5"
               >
-                <div className="w-16 h-16 rounded-full bg-brand-400/10 border border-brand-400/20 flex items-center justify-center mx-auto">
-                  <CheckCircle className="h-8 w-8 text-brand-400" />
+                <div className="w-16 h-16 rounded-full bg-[#0D4D36]/10 border-2 border-[#0D4D36]/20 flex items-center justify-center mx-auto">
+                  <CheckCircle className="h-8 w-8 text-[#0D4D36]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">
-                    Booking confirmed!
-                  </h3>
-                  <p className="text-sm text-white/50 mt-1">
+                  <h3 className="font-bold text-[#111111] text-lg">Booking confirmed!</h3>
+                  <p className="text-sm text-[#5F5F5F] mt-1">
                     {format(date, "EEE, d MMM")} · {formatTime(time)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-white/[0.07] p-4 text-sm space-y-2">
+                <div className="rounded-2xl border-2 border-[#E7E2DA] bg-[#F4F1EB] p-4 text-sm space-y-2.5">
                   <div className="flex justify-between">
-                    <span className="text-white/40">Turf</span>
-                    <span className="text-white">{turf.name}</span>
+                    <span className="text-[#9E9284] font-medium">Turf</span>
+                    <span className="text-[#111111] font-semibold">{turf.name}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/40">Amount</span>
-                    <span className="text-brand-400 font-bold">
-                      {formatPrice(total)}
-                    </span>
+                    <span className="text-[#9E9284] font-medium">Amount</span>
+                    <span className="text-[#0D4D36] font-bold">{formatPrice(total)}</span>
                   </div>
-                  {turf.rewards_enabled &&
-                    (turf.coins_per_booking ?? 0) > 0 && (
-                      <div className="flex justify-between border-t border-white/[0.07] pt-2">
-                        <span className="text-white/40 flex items-center gap-1">
-                          <Coins className="h-3 w-3" /> Earned
-                        </span>
-                        <span className="text-brand-400 font-bold">
-                          +{turf.coins_per_booking} TurfCoins
-                        </span>
-                      </div>
-                    )}
+                  {turf.rewards_enabled && (turf.coins_per_booking ?? 0) > 0 && (
+                    <div className="flex justify-between border-t border-[#E7E2DA] pt-2.5">
+                      <span className="text-[#9E9284] flex items-center gap-1 font-medium">
+                        <Coins className="h-3 w-3" /> Earned
+                      </span>
+                      <span className="text-[#0D4D36] font-bold">
+                        +{turf.coins_per_booking} TurfCoins
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button

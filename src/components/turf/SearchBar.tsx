@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
@@ -21,18 +21,18 @@ export function SearchBar({ className, placeholder = "Search turfs, cities…" }
 
   return (
     <div className={cn("relative", className)}>
-      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9E9284] pointer-events-none" />
       <input
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-11 pl-10 pr-9 rounded-lg border border-white/[0.09] bg-white/[0.04] text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-brand-400/50 focus:border-brand-400/40 transition-colors"
+        className="w-full h-12 pl-11 pr-10 rounded-2xl border-2 border-[#E7E2DA] bg-white text-[#111111] text-sm placeholder:text-[#9E9284] focus:outline-none focus:border-[#0D4D36]/40 focus:ring-4 focus:ring-[#0D4D36]/8 transition-all duration-150 shadow-sm"
       />
       {value && (
         <button
           onClick={() => { setValue(""); setSearchQuery(undefined); }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-white/30 hover:text-white/70 transition-colors"
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#9E9284] hover:text-[#5F5F5F] transition-colors rounded-full hover:bg-[#F4F1EB]"
         >
           <X className="h-3.5 w-3.5" />
         </button>
