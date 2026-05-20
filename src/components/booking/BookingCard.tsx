@@ -8,7 +8,6 @@ import { Calendar, Clock, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Booking } from "@/types";
-import { createClient } from "@/lib/supabase/client";
 import { formatPrice, formatTime } from "@/lib/utils";
 import { toast } from "@/hooks/useToast";
 
@@ -23,19 +22,33 @@ function isCancellable(booking: Booking): boolean {
   return slotStart > new Date();
 }
 
+/* Safe date parse — avoids UTC midnight timezone rollover */
+function parseDate(dateStr: string): Date {
+  return new Date(dateStr.includes("T") ? dateStr : `${dateStr}T12:00:00`);
+}
+
 export function BookingCard({ booking, onCancel }: BookingCardProps) {
   const [cancelling, setCancelling] = useState(false);
+  const cancellable = isCancellable(booking);
 
   const handleCancel = async () => {
-    if (!confirm("Cancel this booking? This action cannot be undone.")) return;
+    if (!confirm("Cancel this booking? A refund will be initiated automatically.")) return;
     setCancelling(true);
     try {
-      const { error } = await createClient()
-        .from("bookings")
-        .update({ status: "cancelled" })
-        .eq("id", booking.id);
-      if (error) throw error;
-      toast({ title: "Booking cancelled successfully." });
+      const res = await fetch("/api/payments/refund", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: booking.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to cancel booking");
+
+      toast({
+        title: "Booking cancelled",
+        description: data.refunded
+          ? "Your refund has been initiated and will arrive in 5–7 business days."
+          : data.refundNote ?? "Booking cancelled successfully.",
+      });
       onCancel?.();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Could not cancel booking";
@@ -47,16 +60,14 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
 
   const statusVariant: Record<string, "success" | "warning" | "destructive"> = {
     confirmed: "success",
-    pending: "warning",
+    pending:   "warning",
     cancelled: "destructive",
   };
 
-  const cancellable = isCancellable(booking);
-
   return (
-    <div className="flex gap-3 p-4 rounded-2xl border-2 border-[#E7E2DA] bg-white hover:border-[#C4BAB0] hover:shadow-md hover:shadow-black/5 transition-all duration-200">
+    <div className="flex gap-3 p-4 rounded-2xl border-2 border-gray-100 bg-white hover:border-[#0B3D2E]/15 hover:shadow-md hover:shadow-[#0B3D2E]/5 transition-all duration-200">
       <Link href={`/turfs/${booking.turf_id}`} className="shrink-0">
-        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#F4F1EB]">
+        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#FAF7F0]">
           <Image
             src={
               booking.turf?.images?.[0] ||
@@ -72,24 +83,24 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1">
           <Link href={`/turfs/${booking.turf_id}`}>
-            <h3 className="font-semibold text-[#111111] text-sm hover:text-[#0D4D36] transition-colors line-clamp-1">
+            <h3 className="font-display font-bold text-[#1F2937] text-sm hover:text-[#0B3D2E] transition-colors line-clamp-1">
               {booking.turf?.name}
             </h3>
           </Link>
-          <Badge variant={statusVariant[booking.status] ?? "warning"} className="shrink-0 text-[10px]">
+          <Badge variant={statusVariant[booking.status] ?? "warning"} className="shrink-0 text-[10px] capitalize">
             {booking.status}
           </Badge>
         </div>
 
-        <div className="flex items-center gap-1 text-xs text-[#9E9284] mb-2">
+        <div className="flex items-center gap-1 text-xs text-[#9CA3AF] mb-2">
           <MapPin className="h-3 w-3 shrink-0" />
           <span className="truncate">{booking.turf?.city}</span>
         </div>
 
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#9E9284]">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#9CA3AF]">
           <span className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            {format(new Date(booking.slot_date), "d MMM yyyy")}
+            {format(parseDate(booking.slot_date), "d MMM yyyy")}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
@@ -98,7 +109,7 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
         </div>
 
         <div className="flex items-center justify-between mt-2.5">
-          <span className="text-sm font-bold text-[#0D4D36]">
+          <span className="text-sm font-bold text-[#0B3D2E]">
             {formatPrice(booking.total_price)}
           </span>
           {cancellable && (
@@ -109,7 +120,7 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
               loading={cancelling}
               className="text-xs h-7 px-2.5"
             >
-              Cancel
+              Cancel & Refund
             </Button>
           )}
         </div>

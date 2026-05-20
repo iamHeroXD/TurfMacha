@@ -122,8 +122,8 @@ export default function RootLayout({
                   <main className="pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
                     {children}
                   </main>
-                  <Footer />
                 </PageTransition>
+                <Footer />
                 <BottomNav />
                 <Toaster />
                 <PWAInstallBanner />

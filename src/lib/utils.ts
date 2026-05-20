@@ -73,44 +73,14 @@ export function generateTimeSlots(
 
 export const SPORTS_CONFIG: Record<
   Sport,
-  { label: string; emoji: string; color: string; gradient: string }
+  { label: string; emoji: string; color: string; selectedBg: string; selectedText: string }
 > = {
-  football: {
-    label: "Football",
-    emoji: "⚽",
-    color: "emerald",
-    gradient: "from-brand-400 to-green-600",
-  },
-  cricket: {
-    label: "Cricket",
-    emoji: "🏏",
-    color: "blue",
-    gradient: "from-blue-500 to-cyan-600",
-  },
-  badminton: {
-    label: "Badminton",
-    emoji: "🏸",
-    color: "yellow",
-    gradient: "from-yellow-500 to-orange-500",
-  },
-  basketball: {
-    label: "Basketball",
-    emoji: "🏀",
-    color: "orange",
-    gradient: "from-orange-500 to-red-500",
-  },
-  volleyball: {
-    label: "Volleyball",
-    emoji: "🏐",
-    color: "purple",
-    gradient: "from-purple-500 to-pink-500",
-  },
-  tennis: {
-    label: "Tennis",
-    emoji: "🎾",
-    color: "lime",
-    gradient: "from-lime-500 to-green-500",
-  },
+  football:   { label: "Football",   emoji: "⚽", color: "emerald", selectedBg: "#0B3D2E", selectedText: "#FAF7F0" },
+  cricket:    { label: "Cricket",    emoji: "🏏", color: "blue",    selectedBg: "#1D4ED8", selectedText: "#FFFFFF" },
+  badminton:  { label: "Badminton",  emoji: "🏸", color: "yellow",  selectedBg: "#B45309", selectedText: "#FFFFFF" },
+  basketball: { label: "Basketball", emoji: "🏀", color: "orange",  selectedBg: "#C2410C", selectedText: "#FFFFFF" },
+  volleyball: { label: "Volleyball", emoji: "🏐", color: "purple",  selectedBg: "#7C3AED", selectedText: "#FFFFFF" },
+  tennis:     { label: "Tennis",     emoji: "🎾", color: "lime",    selectedBg: "#166534", selectedText: "#FFFFFF" },
 };
 
 export const AMENITIES_LIST = [

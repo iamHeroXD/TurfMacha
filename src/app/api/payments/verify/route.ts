@@ -122,6 +122,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, bookingId: booking.id });
   }
 
+  // Guard: only confirm if still pending — prevents confirming cancelled/expired bookings
+  if (booking.status !== "pending") {
+    return NextResponse.json(
+      { error: "Booking is no longer active. Please create a new booking." },
+      { status: 409 }
+    );
+  }
+
   // Confirm the booking
   const { error: updateError } = await supabase
     .from("bookings")

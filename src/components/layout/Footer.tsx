@@ -38,6 +38,7 @@ const COMPANY = [
   { label: "How it Works",   href: "/how-it-works"},
   { label: "For Owners",     href: "/for-owners" },
   { label: "Contact",        href: "/contact"    },
+  { label: "Download App",   href: "/download"   },
 ];
 
 const LEGAL = [

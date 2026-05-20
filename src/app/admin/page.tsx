@@ -29,19 +29,18 @@ export default function AdminPage() {
         sb.from("users").select("id", { count: "exact", head: true }),
         sb.from("turfs").select("id", { count: "exact", head: true }),
         sb.from("bookings").select("id", { count: "exact", head: true }),
-        // Aggregate revenue server-side to avoid loading all booking rows
+        // DB-level SUM — avoids shipping all booking rows to JS
         sb.from("bookings")
-          .select("total_price")
+          .select("total_price.sum()")
           .eq("status", "confirmed")
           .eq("payment_status", "paid"),
         sb.from("users").select("*").order("created_at", { ascending: false }).limit(5),
         sb.from("bookings").select("*, turf:turfs(name), user:users(full_name)").order("created_at", { ascending: false }).limit(5),
       ]);
 
-      const revenue = (revenueRes.data ?? []).reduce(
-        (s: number, b: { total_price: number }) => s + (b.total_price || 0),
-        0
-      );
+      // PostgREST aggregate returns [{ "total_price": { sum: N } }]
+      const revenueRow = revenueRes.data?.[0] as unknown as { "total_price": { sum: number } } | undefined;
+      const revenue = revenueRow?.["total_price"]?.sum ?? 0;
 
       setStats({
         users: usersRes.count ?? 0,

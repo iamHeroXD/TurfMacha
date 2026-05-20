@@ -14,10 +14,10 @@ import { createClient } from "@/lib/supabase/client";
 import { getInitials, cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { href: "/turfs",          label: "Browse Turfs" },
-  { href: "/how-it-works",   label: "How it works" },
-  { href: "/for-owners",     label: "For Owners"   },
-  { href: "/about",          label: "About"        },
+  { href: "/turfs",        label: "Browse Turfs" },
+  { href: "/how-it-works", label: "How it works"  },
+  { href: "/for-owners",   label: "For Owners"   },
+  { href: "/about",        label: "About"         },
 ];
 
 const menuItemVariants = {
@@ -192,13 +192,13 @@ export function Navbar() {
                   >
                     <LogIn className="w-4 h-4" /> Sign in
                   </Link>
-                  <Link href="/signup">
+                  <Link href="/download">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                       <Button
                         size="sm"
                         className="rounded-full bg-[#0B3D2E] text-white px-5 py-2.5 shadow-lg shadow-[#0B3D2E]/20 hover:bg-[#0B3D2E]/90"
                       >
-                        Get started
+                        Download App
                       </Button>
                     </motion.div>
                   </Link>
@@ -263,8 +263,8 @@ export function Navbar() {
                     <Link href="/login" className="flex-1">
                       <Button variant="outline" className="w-full rounded-xl">Sign in</Button>
                     </Link>
-                    <Link href="/signup" className="flex-1">
-                      <Button className="w-full rounded-xl bg-[#0B3D2E]">Get started</Button>
+                    <Link href="/download" className="flex-1">
+                      <Button className="w-full rounded-xl bg-[#0B3D2E]">Download App</Button>
                     </Link>
                   </motion.div>
                 ) : (

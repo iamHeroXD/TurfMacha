@@ -1,10 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
 import { BookingCard } from "@/components/booking/BookingCard";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
@@ -14,10 +13,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function BookingsPage() {
-  const { user } = useAuthStore();
-  const router = useRouter();
+  const { user }   = useAuthStore();
+  const router     = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading,  setLoading]  = useState(true);
 
   const fetchBookings = useCallback(async () => {
     if (!user) return;
@@ -36,43 +35,51 @@ export default function BookingsPage() {
     fetchBookings();
   }, [user, router, fetchBookings]);
 
-  const upcoming = bookings.filter((b) => b.status !== "cancelled" && new Date(`${b.slot_date} ${b.start_time}`) >= new Date());
-  const past = bookings.filter((b) => b.status === "cancelled" || new Date(`${b.slot_date} ${b.start_time}`) < new Date());
+  const upcoming = bookings.filter(
+    (b) => b.status !== "cancelled" && new Date(`${b.slot_date}T${b.start_time}`) >= new Date()
+  );
+  const past = bookings.filter(
+    (b) => b.status === "cancelled" || new Date(`${b.slot_date}T${b.start_time}`) < new Date()
+  );
 
   return (
-    <div className="min-h-screen pt-14 pb-24 md:pb-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-brand-400" />
-            My Bookings
+    <div className="min-h-screen bg-[#FAF7F0] pt-14 pb-24 md:pb-8">
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          <h1 className="font-display font-bold text-2xl text-[#0B3D2E] flex items-center gap-2">
+            <Calendar className="h-6 w-6" /> My Bookings
           </h1>
+        </div>
+      </div>
 
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <Tabs defaultValue="upcoming">
-            <TabsList className="w-full">
-              <TabsTrigger value="upcoming" className="flex-1">
+            <TabsList className="w-full bg-gray-100 rounded-xl p-1 mb-6">
+              <TabsTrigger value="upcoming" className="flex-1 rounded-lg data-[state=active]:bg-[#0B3D2E] data-[state=active]:text-white font-semibold">
                 Upcoming ({upcoming.length})
               </TabsTrigger>
-              <TabsTrigger value="past" className="flex-1">
-                Past & Cancelled ({past.length})
+              <TabsTrigger value="past" className="flex-1 rounded-lg data-[state=active]:bg-[#0B3D2E] data-[state=active]:text-white font-semibold">
+                Past &amp; Cancelled ({past.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="upcoming">
               {loading ? (
-                <div className="space-y-3 mt-4">
-                  {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => <div key={i} className="h-24 rounded-2xl skeleton" />)}
                 </div>
               ) : upcoming.length === 0 ? (
-                <div className="glass-card p-12 text-center mt-4">
+                <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-14 text-center">
                   <div className="text-5xl mb-4">📅</div>
-                  <p className="text-white/60">No upcoming bookings</p>
+                  <p className="font-semibold text-[#1F2937] mb-1">No upcoming bookings</p>
+                  <p className="text-sm text-[#9CA3AF] mb-5">Ready for your next game?</p>
                   <Link href="/turfs">
-                    <Button className="mt-4">Book a Turf</Button>
+                    <Button className="rounded-xl">Book a Turf</Button>
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-3 mt-4">
+                <div className="space-y-3">
                   {upcoming.map((booking) => (
                     <BookingCard key={booking.id} booking={booking} onCancel={fetchBookings} />
                   ))}
@@ -82,18 +89,16 @@ export default function BookingsPage() {
 
             <TabsContent value="past">
               {loading ? (
-                <div className="space-y-3 mt-4">
-                  {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => <div key={i} className="h-24 rounded-2xl skeleton" />)}
                 </div>
               ) : past.length === 0 ? (
-                <div className="glass-card p-12 text-center mt-4">
-                  <p className="text-white/60">No past bookings</p>
+                <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-14 text-center">
+                  <p className="text-[#9CA3AF]">No past bookings yet</p>
                 </div>
               ) : (
-                <div className="space-y-3 mt-4">
-                  {past.map((booking) => (
-                    <BookingCard key={booking.id} booking={booking} />
-                  ))}
+                <div className="space-y-3">
+                  {past.map((booking) => <BookingCard key={booking.id} booking={booking} />)}
                 </div>
               )}
             </TabsContent>

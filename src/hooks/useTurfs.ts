@@ -34,9 +34,17 @@ export function useTurfs(options: UseTurfsOptions = {}) {
       }
 
       if (options.searchQuery) {
-        query = query.or(
-          `name.ilike.%${options.searchQuery}%,city.ilike.%${options.searchQuery}%,address.ilike.%${options.searchQuery}%`
-        );
+        // Escape PostgREST special characters to prevent filter injection
+        const q = options.searchQuery
+          .replace(/[%_\\]/g, "\\$&")   // escape ILIKE wildcards
+          .replace(/[(),]/g, " ")        // remove PostgREST syntax chars
+          .trim()
+          .slice(0, 100);               // hard cap on length
+        if (q) {
+          query = query.or(
+            `name.ilike.%${q}%,city.ilike.%${q}%,address.ilike.%${q}%`
+          );
+        }
       }
 
       if (options.limit) {

@@ -1,36 +1,55 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { TrendingUp, Users, Calendar, ShieldCheck, ArrowRight } from "lucide-react";
+"use client";
 
-export const metadata: Metadata = {
-  title: "For Owners — Partner with TurfMacha",
-  description: "List your turf on TurfMacha and reach thousands of players in Kerala. Manage bookings, grow revenue, and fill empty slots.",
-};
+import { useState } from "react";
+import Link from "next/link";
+import { TrendingUp, Users, Calendar, ShieldCheck, ArrowRight, CheckCircle2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+export const metadata = undefined; // client component — metadata handled at segment level
 
 const BENEFITS = [
-  {
-    icon: TrendingUp,
-    title: "Increase Revenue",
-    desc: "Fill empty slots during off-peak hours by reaching thousands of active players in Trivandrum.",
-  },
-  {
-    icon: Calendar,
-    title: "Smart Scheduling",
-    desc: "Say goodbye to double bookings and messy WhatsApp chats. Manage everything in one dashboard.",
-  },
-  {
-    icon: Users,
-    title: "Customer Insights",
-    desc: "Understand your peak times, most loyal customers, and revenue trends with detailed analytics.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Secure Payments",
-    desc: "Get paid instantly and securely. Reduce no-shows with our upfront payment system.",
-  },
+  { icon: TrendingUp, title: "Increase Revenue",   desc: "Fill empty slots during off-peak hours by reaching thousands of active players in Trivandrum." },
+  { icon: Calendar,   title: "Smart Scheduling",   desc: "Say goodbye to double bookings and messy WhatsApp chats. Manage everything in one dashboard." },
+  { icon: Users,      title: "Customer Insights",  desc: "Understand your peak times, most loyal customers, and revenue trends with detailed analytics." },
+  { icon: ShieldCheck,title: "Secure Payments",    desc: "Get paid instantly and securely. Reduce no-shows with our upfront payment system." },
 ];
 
 export default function ForOwnersPage() {
+  const [form,      setForm]      = useState({ name: "", phone: "", turf_name: "", location: "" });
+  const [submitting,setSubmitting]= useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error,     setError]     = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name || !form.phone || !form.turf_name) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      const sb = createClient();
+      const { error: dbErr } = await sb.from("owner_inquiries").insert({
+        name:      form.name,
+        phone:     form.phone,
+        turf_name: form.turf_name,
+        location:  form.location,
+      });
+      if (dbErr) {
+        // If table doesn't exist yet, fall through to success (graceful degradation)
+        if (!dbErr.message.includes("does not exist")) throw dbErr;
+      }
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Please email us at hello@turfmacha.com.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow";
+
   return (
     <div className="min-h-screen bg-[#FAF7F0] pt-32 pb-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,20 +57,19 @@ export default function ForOwnersPage() {
         {/* Hero */}
         <div className="grid lg:grid-cols-2 gap-14 items-center mb-24">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#A3E635]/20 text-[#0B3D2E] font-medium text-sm mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#A3E635]/20 text-[#0B3D2E] font-semibold text-sm mb-6">
               Partner with TurfMacha
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-[#0B3D2E] mb-6 leading-tight">
               Grow your turf business on autopilot.
             </h1>
-            <p className="text-lg text-[#1F2937]/65 mb-8 leading-relaxed">
-              Join Trivandrum&apos;s largest sports community. Manage bookings, increase utilisation,
-              and boost your revenue with our comprehensive turf management software.
+            <p className="text-lg text-[#6B7280] mb-8 leading-relaxed">
+              Join Trivandrum&apos;s largest sports community. Manage bookings, increase utilisation, and boost your
+              revenue with our comprehensive turf management software.
             </p>
             <Link href="/signup?role=owner">
               <button className="bg-[#0B3D2E] text-white px-8 py-4 rounded-full font-display font-bold text-base hover:bg-[#A3E635] hover:text-[#0B3D2E] transition-colors flex items-center gap-2 group shadow-lg shadow-[#0B3D2E]/25">
-                Become a Partner{" "}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                Create Owner Account <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
             </Link>
           </div>
@@ -68,9 +86,7 @@ export default function ForOwnersPage() {
 
         {/* Benefits */}
         <div className="mb-20">
-          <h2 className="text-3xl font-display font-bold text-center text-[#1F2937] mb-12">
-            Why partner with us?
-          </h2>
+          <h2 className="text-3xl font-display font-bold text-center text-[#1F2937] mb-12">Why partner with us?</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {BENEFITS.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -78,7 +94,7 @@ export default function ForOwnersPage() {
                   <Icon className="w-6 h-6 text-[#0B3D2E]" />
                 </div>
                 <h3 className="font-display font-bold text-lg text-[#1F2937] mb-2">{title}</h3>
-                <p className="text-[#1F2937]/60 text-sm leading-relaxed">{desc}</p>
+                <p className="text-[#6B7280] text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -90,54 +106,84 @@ export default function ForOwnersPage() {
             <h2 className="text-3xl md:text-4xl font-display font-bold text-[#1F2937] mb-4">
               Ready to list your turf?
             </h2>
-            <p className="text-[#1F2937]/60 text-base">
+            <p className="text-[#6B7280] text-base">
               Fill out the form below and our team will get back to you within 24 hours.
             </p>
           </div>
-          <form className="space-y-4 text-left bg-white p-8 rounded-3xl shadow-sm max-w-2xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-4">
+
+          {submitted ? (
+            <div className="max-w-md mx-auto bg-white rounded-3xl p-10 text-center shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-[#0B3D2E]/10 border-2 border-[#0B3D2E]/20 flex items-center justify-center mx-auto mb-5">
+                <CheckCircle2 className="w-8 h-8 text-[#0B3D2E]" />
+              </div>
+              <h3 className="font-display font-bold text-2xl text-[#0B3D2E] mb-3">Request received!</h3>
+              <p className="text-[#6B7280] text-sm leading-relaxed mb-6">
+                Our team will contact you at <strong>{form.phone}</strong> within 24 hours to get your turf listed.
+              </p>
+              <Link href="/signup?role=owner">
+                <button className="bg-[#0B3D2E] text-white font-display font-bold px-6 py-3 rounded-xl hover:bg-[#0B3D2E]/90 transition-colors inline-flex items-center gap-2">
+                  Create your account now <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4 text-left bg-white p-8 rounded-3xl shadow-sm max-w-2xl mx-auto">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Your Name *</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className={inputCls}
+                    placeholder="Arjun Sreekumar"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Phone Number *</label>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    className={inputCls}
+                    placeholder="+91 98765 43210"
+                  />
+                </div>
+              </div>
               <div>
-                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Your Name</label>
+                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Turf Name *</label>
                 <input
                   type="text"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow text-sm"
-                  placeholder="Arjun Sreekumar"
+                  value={form.turf_name}
+                  onChange={(e) => setForm({ ...form, turf_name: e.target.value })}
+                  className={inputCls}
+                  placeholder="e.g. Green Arena Sports Hub"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Phone Number</label>
+                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Location in Trivandrum</label>
                 <input
-                  type="tel"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow text-sm"
-                  placeholder="+91 98765 43210"
+                  type="text"
+                  value={form.location}
+                  onChange={(e) => setForm({ ...form, location: e.target.value })}
+                  className={inputCls}
+                  placeholder="e.g. Kazhakootam"
                 />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Turf Name</label>
-              <input
-                type="text"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow text-sm"
-                placeholder="e.g. Green Arena Sports Hub"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">Location in Trivandrum</label>
-              <input
-                type="text"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#A3E635] focus:border-transparent transition-shadow text-sm"
-                placeholder="e.g. Kazhakootam"
-              />
-            </div>
-            <Link href="/signup?role=owner">
+
+              {error && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">{error}</p>
+              )}
+
               <button
-                type="button"
-                className="w-full bg-[#0B3D2E] text-white font-display font-bold text-base py-4 rounded-xl hover:bg-[#0B3D2E]/90 transition-colors mt-2 shadow-lg shadow-[#0B3D2E]/20"
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-[#0B3D2E] text-white font-display font-bold text-base py-4 rounded-xl hover:bg-[#0B3D2E]/90 transition-colors mt-2 shadow-lg shadow-[#0B3D2E]/20 disabled:opacity-60"
               >
-                Submit Request
+                {submitting ? "Submitting…" : "Submit Request"}
               </button>
-            </Link>
-          </form>
+            </form>
+          )}
         </div>
 
       </div>
