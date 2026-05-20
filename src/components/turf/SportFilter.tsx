@@ -17,10 +17,10 @@ export function SportFilter({ selected, onSelect }: SportFilterProps) {
       <button
         onClick={() => onSelect(undefined)}
         className={cn(
-          "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 border-2 transition-all duration-150",
+          "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap shrink-0 border-2 transition-all duration-150",
           !selected
-            ? "bg-[#0D4D36] border-[#0D4D36] text-white shadow-sm"
-            : "bg-white border-[#E7E2DA] text-[#5F5F5F] hover:border-[#C4BAB0] hover:text-[#111111]"
+            ? "bg-[#0B3D2E] border-[#0B3D2E] text-white shadow-md shadow-[#0B3D2E]/20"
+            : "bg-white border-gray-200 text-[#6B7280] hover:border-[#0B3D2E]/30 hover:text-[#1F2937]"
         )}
       >
         All Sports
@@ -30,10 +30,10 @@ export function SportFilter({ selected, onSelect }: SportFilterProps) {
           key={sport}
           onClick={() => onSelect(selected === sport ? undefined : sport)}
           className={cn(
-            "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 border-2 transition-all duration-150",
+            "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap shrink-0 border-2 transition-all duration-150",
             selected === sport
-              ? "bg-[#0D4D36] border-[#0D4D36] text-white shadow-sm"
-              : "bg-white border-[#E7E2DA] text-[#5F5F5F] hover:border-[#C4BAB0] hover:text-[#111111]"
+              ? "bg-[#0B3D2E] border-[#0B3D2E] text-white shadow-md shadow-[#0B3D2E]/20"
+              : "bg-white border-gray-200 text-[#6B7280] hover:border-[#0B3D2E]/30 hover:text-[#1F2937]"
           )}
         >
           {cfg.emoji} {cfg.label}

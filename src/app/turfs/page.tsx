@@ -50,9 +50,9 @@ function TurfsContent() {
   const hasFilters = !!(sport || searchQuery);
 
   return (
-    <div className="min-h-screen bg-[#F4F1EB] pt-14">
+    <div className="min-h-screen bg-[#FAF7F0] pt-14">
       {/* Sticky filter bar */}
-      <div className="sticky top-14 z-30 bg-[#F4F1EB]/97 border-b border-[#E7E2DA] supports-[backdrop-filter]:backdrop-blur-md">
+      <div className="sticky top-14 z-30 bg-[#FAF7F0]/97 border-b border-[#E7E2DA] supports-[backdrop-filter]:backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 py-3.5 space-y-3">
 
           {/* Row 1 */}
@@ -166,8 +166,8 @@ export default function TurfsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#F4F1EB] pt-14">
-          <div className="sticky top-14 z-30 bg-[#F4F1EB] border-b border-[#E7E2DA] h-40" />
+        <div className="min-h-screen bg-[#FAF7F0] pt-14">
+          <div className="sticky top-14 z-30 bg-[#FAF7F0] border-b border-[#E7E2DA] h-40" />
           <div className="max-w-5xl mx-auto px-4 py-8">
             <TurfGridSkeleton />
           </div>

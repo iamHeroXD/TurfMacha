@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, Bricolage_Grotesque } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
@@ -10,12 +10,20 @@ import { Toaster } from "@/components/ui/toaster";
 import { PWAInstallBanner } from "@/components/layout/PWAInstallBanner";
 import { PWAUpdateBanner } from "@/components/layout/PWAUpdateBanner";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { Footer } from "@/components/layout/Footer";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-jakarta",
+  display: "swap",
+});
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-bricolage",
   display: "swap",
 });
 
@@ -96,7 +104,7 @@ export default function RootLayout({
   return (
     // ThemeProvider adds "dark" or "light" class — suppressHydrationWarning prevents
     // mismatch between server-rendered class and client-resolved theme
-    <html lang="en" className={jakarta.variable} suppressHydrationWarning>
+    <html lang="en" className={`${jakarta.variable} ${bricolage.variable}`} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -114,6 +122,7 @@ export default function RootLayout({
                   <main className="pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
                     {children}
                   </main>
+                  <Footer />
                 </PageTransition>
                 <BottomNav />
                 <Toaster />
