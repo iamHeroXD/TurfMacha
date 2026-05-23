@@ -59,17 +59,28 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_IN",
     siteName: "TurfMacha",
+    images: [
+      {
+        url: "/logoofturfmacha.png",
+        width: 1080,
+        height: 1080,
+        alt: "TurfMacha — Book Sports Turf Near You",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "TurfMacha",
     description: "Discover and book premium sports turfs near you.",
+    images: ["/logoofturfmacha.png"],
   },
   icons: {
     icon: [
+      { url: "/logoofturfmacha.png", type: "image/png" },
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
+    shortcut: "/logoofturfmacha.png",
     apple: [
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],

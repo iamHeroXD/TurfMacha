@@ -46,7 +46,7 @@ async function main() {
 
   for (const size of SIZES) {
     const outPath = join(ICONS_DIR, `icon-${size}x${size}.png`);
-    await sharp(source).resize(size, size, { fit: "contain", background: { r: 10, g: 10, b: 10, alpha: 1 } }).png().toFile(outPath);
+    await sharp(source).resize(size, size, { fit: "contain", background: { r: 244, g: 241, b: 235, alpha: 1 } }).png().toFile(outPath);
     console.log(`✅ Generated ${size}x${size} → ${outPath}`);
   }
 
