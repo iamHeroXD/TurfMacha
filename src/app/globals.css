@@ -39,7 +39,14 @@
 ───────────────────────────────────────────── */
 @layer base {
   * { @apply border-border; }
-  html { scroll-behavior: smooth; color-scheme: light; }
+  html {
+    scroll-behavior: smooth;
+    color-scheme: light;
+    /* App feel: don't let the OS rescale text, kill the blue tap flash. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
 
   body {
     background-color: hsl(var(--background));
@@ -49,6 +56,14 @@
     -moz-osx-font-smoothing: grayscale;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
+    /* No rubber-band overscroll glow — feels like a native screen. */
+    overscroll-behavior-y: none;
+  }
+
+  /* Let buttons/links/nav feel tappable, but keep text selectable in content. */
+  button, a, [role="button"], nav {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
   }
 
   h1, h2, h3, h4, h5, h6 {

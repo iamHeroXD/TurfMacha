@@ -9,6 +9,7 @@ import { Eye, EyeOff, User, Building2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/ui/BrandMark";
 import { createClient } from "@/lib/supabase/client";
+import { signInWithGoogle } from "@/lib/auth/google";
 import { signupSchema, SignupInput } from "@/lib/validations/auth";
 import { cn } from "@/lib/utils";
 
@@ -28,12 +29,15 @@ function SignupContent() {
   });
 
   const handleGoogleSignup = async () => {
+    setErr("");
     setGoogleLoading(true);
-    const sb = createClient();
-    await sb.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+    try {
+      const { redirected } = await signInWithGoogle();
+      if (!redirected) router.replace("/dashboard/user");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Google sign-in failed.");
+      setGoogleLoading(false);
+    }
   };
 
   const onSubmit = async (data: SignupInput) => {
@@ -79,7 +83,7 @@ function SignupContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#F4F1EB] pt-20">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#F4F1EB] pt-[max(3rem,env(safe-area-inset-top,0px))]">
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 mb-8">

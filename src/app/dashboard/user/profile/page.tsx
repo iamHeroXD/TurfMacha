@@ -123,7 +123,7 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     await createClient().auth.signOut();
     logout();
-    router.push("/");
+    router.replace("/login");
   };
 
   const handleDeleteAccount = async () => {

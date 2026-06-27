@@ -1,0 +1,15 @@
+# Native Android (Capacitor) project — not part of the web deployment.
+android
+www
+assets
+
+# Build artifacts & local junk
+.next
+tests
+.idea
+design style
+*.apk
+*.keystore
+
+# Large root-level source asset (leading slash = root only; keep public/ copy!)
+/logoofturfmacha.png

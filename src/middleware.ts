@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED_ROUTES = ["/dashboard", "/admin"];
+// App-first model: every route requires auth EXCEPT the auth screens and the
+// OAuth callback. The marketing site has been removed — the app opens on /login.
 const AUTH_ROUTES = ["/login", "/signup", "/forgot-password", "/reset-password"];
-const PUBLIC_PASSTHROUGH = ["/auth/callback"];
+const PUBLIC_PASSTHROUGH = ["/auth/callback", "/offline"];
 
 // Security headers applied to every response
 const SECURITY_HEADERS: Record<string, string> = {
@@ -54,23 +55,34 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Let OAuth callback through without any redirect logic
+  // Let OAuth callback / offline shell through without any redirect logic
   if (PUBLIC_PASSTHROUGH.some((route) => pathname.startsWith(route))) {
     return applySecurityHeaders(supabaseResponse);
   }
 
-  // Redirect unauthenticated users from protected routes to login
-  if (!user && PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
+  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
+
+  // Root is not a real screen anymore — bounce to the right place.
+  if (pathname === "/") {
+    const target = user ? "/dashboard/user" : "/login";
+    return applySecurityHeaders(
+      NextResponse.redirect(new URL(target, request.url))
+    );
+  }
+
+  // Unauthenticated users may only see the auth screens. Everything else
+  // (the whole app) redirects to login, preserving the intended destination.
+  if (!user && !isAuthRoute) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return applySecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
-  // Redirect authenticated users away from auth pages
+  // Redirect authenticated users away from auth pages.
   // NOTE: We do NOT perform role-based routing in middleware because user_metadata
   // (which is user-controlled at signup) should never be trusted for access control.
   // Role-based access is enforced at the layout/page level via server-side DB checks.
-  if (user && AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
+  if (user && isAuthRoute) {
     return applySecurityHeaders(
       NextResponse.redirect(new URL("/dashboard/user", request.url))
     );

@@ -11,6 +11,7 @@ import { BrandMark } from "@/components/ui/BrandMark";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { signInWithGoogle } from "@/lib/auth/google";
 import { useAuthStore } from "@/store/useAuthStore";
 import { loginSchema, LoginInput } from "@/lib/validations/auth";
 import { User } from "@/types";
@@ -54,13 +55,22 @@ function LoginContent() {
   };
 
   const handleGoogleLogin = async () => {
+    setErr("");
     setGoogleLoading(true);
-    const sb = createClient();
-    await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } });
+    try {
+      const { redirected } = await signInWithGoogle();
+      // Web redirects away; native returns here with a live session.
+      if (!redirected) {
+        router.replace(params.get("redirect") || "/dashboard/user");
+      }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Google sign-in failed.");
+      setGoogleLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-stretch bg-[#F4F1EB] pt-14">
+    <div className="min-h-screen flex items-stretch bg-[#F4F1EB] pt-[env(safe-area-inset-top,0px)]">
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center py-12">
 
         {/* Left panel (desktop) */}

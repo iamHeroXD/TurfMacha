@@ -2,12 +2,12 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Bricolage_Grotesque } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
+import { AppBar } from "@/components/layout/AppBar";
+import { NativeChrome } from "@/components/layout/NativeChrome";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { AuthProvider } from "@/components/layout/AuthProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { Footer } from "@/components/layout/Footer";
 import { EmailVerificationBanner } from "@/components/layout/EmailVerificationBanner";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 
@@ -116,14 +116,14 @@ export default function RootLayout({
         <AuthProvider>
           <Suspense fallback={null}>
             <PostHogProvider>
-              <Navbar />
+              <NativeChrome />
+              <AppBar />
               <EmailVerificationBanner />
               <PageTransition>
-                <main id="main-content" className="pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+                <main id="main-content" className="pb-[calc(5rem+env(safe-area-inset-bottom,0px))]">
                   {children}
                 </main>
               </PageTransition>
-              <Footer />
               <BottomNav />
               <Toaster />
             </PostHogProvider>

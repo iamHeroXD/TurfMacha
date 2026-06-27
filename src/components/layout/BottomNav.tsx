@@ -2,48 +2,54 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Coins, User, LayoutDashboard } from "lucide-react";
+import { Home, Search, Coins, User, Calendar, LayoutDashboard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { cn } from "@/lib/utils";
+
+// Auth screens own the full viewport — no tab bar there.
+const HIDE_ON = ["/login", "/signup", "/forgot-password", "/reset-password", "/admin"];
 
 export function BottomNav() {
   const pathname = usePathname();
   const { user } = useAuthStore();
 
-  if (
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/signup") ||
-    pathname.startsWith("/admin")
-  ) return null;
+  if (HIDE_ON.some((r) => pathname.startsWith(r))) return null;
 
-  const links = [
-    { href: "/",           icon: Home,           label: "Home"      },
-    { href: "/turfs",      icon: Search,         label: "Explore"   },
-    ...(user?.role === "user"
-      ? [{ href: "/dashboard/user/wallet", icon: Coins, label: "Wallet" }]
-      : []),
-    {
-      href: user?.role === "owner" ? "/dashboard/owner" : "/dashboard/user",
-      icon: LayoutDashboard,
-      label: "Dashboard",
-    },
-    { href: "/dashboard/user/profile", icon: User, label: "Profile" },
-  ];
+  // Role-aware app navigation. "Home" is the dashboard (the app's true home),
+  // since the marketing landing page no longer exists.
+  const links =
+    user?.role === "owner"
+      ? [
+          { href: "/dashboard/owner",          icon: Home,             label: "Home"     },
+          { href: "/dashboard/owner/turfs",    icon: LayoutDashboard,  label: "My Turfs" },
+          { href: "/dashboard/owner/bookings", icon: Calendar,         label: "Bookings" },
+          { href: "/dashboard/user/profile",   icon: User,             label: "Profile"  },
+        ]
+      : [
+          { href: "/dashboard/user",           icon: Home,     label: "Home"     },
+          { href: "/turfs",                    icon: Search,   label: "Explore"  },
+          { href: "/dashboard/user/bookings",  icon: Calendar, label: "Bookings" },
+          { href: "/dashboard/user/wallet",    icon: Coins,    label: "Wallet"   },
+          { href: "/dashboard/user/profile",   icon: User,     label: "Profile"  },
+        ];
 
   return (
     <motion.div
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.15, duration: 0.35 }}
-      className="md:hidden fixed bottom-0 inset-x-0 z-50"
+      className="fixed bottom-0 inset-x-0 z-50"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="bg-[#F4F1EB]/97 border-t border-[#0D4D36]/10 supports-[backdrop-filter]:backdrop-blur-md">
-        <div className="flex items-center justify-around px-2 h-14 max-w-sm mx-auto">
+        <div className="flex items-center justify-around px-2 h-14 max-w-md mx-auto">
           {links.map(({ href, icon: Icon, label }) => {
-            const active =
-              href === "/" ? pathname === "/" : pathname.startsWith(href.split("?")[0]);
+            const base = href.split("?")[0];
+            // Dashboard "Home" tabs are exact-match so they don't stay lit on
+            // nested screens (e.g. /dashboard/user/bookings).
+            const exact = base === "/dashboard/user" || base === "/dashboard/owner";
+            const active = exact ? pathname === base : pathname.startsWith(base);
             return (
               <Link
                 key={href}
