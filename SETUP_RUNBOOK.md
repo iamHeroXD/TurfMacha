@@ -140,7 +140,7 @@ Open http://localhost:3000 → you should land on **/login**. Test:
 1. Make sure `server.url` in `capacitor.config.ts` matches your Vercel URL
    (default is `https://turfmacha.vercel.app`; override with
    `CAP_SERVER_URL=https://your-url npx cap sync android`).
-2. Build (see **APK_BUILD.md** for prerequisites — JDK 17 + Android SDK):
+2. Build (see **APK_BUILD.md** for prerequisites — JDK 21 + Android SDK):
    ```bash
    npm run cap:sync
    npm run android:apk          # debug APK

@@ -32,7 +32,7 @@ CAP_SERVER_URL=https://staging.turfmacha.app npx cap sync android
 
 These are **not** installed in this repo's container — install them locally:
 
-1. **JDK 17** (Temurin/Adoptium recommended). Verify: `java -version`
+1. **JDK 21** (Temurin/Adoptium recommended — Capacitor 8 requires it). Verify: `java -version`
 2. **Android Studio** (includes the Android SDK + command-line tools).
    - In Android Studio → *SDK Manager*, install **Android SDK Platform 34+**
      and **Android SDK Build-Tools**.
